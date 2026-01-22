@@ -205,10 +205,12 @@ const HOME_CATEGORY_COURSES: Record<string, any[]> = {
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
-    const { profile } = useUserStore();
+    const { profile, getUnreadCount } = useUserStore();
     const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const [showTipModal, setShowTipModal] = useState(false);
     const [activeCategory, setActiveCategory] = useState('liderazgo');
+
+    const unreadNotifications = getUnreadCount();
 
     // Logic to select a daily tip based on the current date
     const dailyTip = useMemo(() => {
@@ -245,8 +247,11 @@ const HomePage: React.FC = () => {
                         <span className="text-xs font-bold text-gray-800 dark:text-white">15/30 min</span>
                     </div>
                     <CircularProgress percentage={50} />
-                    <button onClick={() => navigate('/notifications')} className="flex items-center justify-center rounded-full size-10 text-[#111318] dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors ml-1">
+                    <button onClick={() => navigate('/notifications')} className="relative flex items-center justify-center rounded-full size-10 text-[#111318] dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors ml-1">
                         <span className="material-symbols-outlined">notifications</span>
+                        {unreadNotifications > 0 && (
+                            <span className="absolute top-2 right-2 size-2.5 bg-red-500 rounded-full border border-white dark:border-background-dark animate-pulse"></span>
+                        )}
                     </button>
                 </div>
             </div>

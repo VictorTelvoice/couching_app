@@ -24,6 +24,16 @@ export interface Review {
     date: string;
 }
 
+export interface Notification {
+    id: number;
+    title: string;
+    message: string;
+    type: 'alert' | 'success' | 'info' | 'message';
+    date: Date; // Object date for sorting
+    read: boolean;
+    link?: string; // Where to navigate on click
+}
+
 interface UserProfile {
     name: string;
     role: string;
@@ -44,6 +54,7 @@ interface UserState {
     badges: Badge[];
     savedContent: number[]; // IDs of saved courses/articles
     reviews: Review[];
+    notifications: Notification[];
     
     // Actions
     updateProfile: (data: Partial<UserProfile>) => void;
@@ -52,9 +63,12 @@ interface UserState {
     unlockBadge: (id: number) => void;
     toggleSave: (id: number) => void;
     addReview: (review: Omit<Review, 'id' | 'author' | 'avatar' | 'date'>) => void;
+    markNotificationAsRead: (id: number) => void;
+    markAllNotificationsAsRead: () => void;
+    getUnreadCount: () => number;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>((set, get) => ({
     profile: {
         name: "Ana García",
         role: "Gerente de Talento & Cultura",
@@ -87,6 +101,44 @@ export const useUserStore = create<UserState>((set) => ({
         { id: 102, mentorId: 1, author: "Maria González", avatar: "https://i.pravatar.cc/150?img=5", rating: 4, comment: "Buenos consejos sobre liderazgo remoto.", date: "Hace 1 semana" },
         { id: 103, mentorId: 2, author: "Juan Perez", avatar: "https://i.pravatar.cc/150?img=3", rating: 5, comment: "David es un experto en arquitectura cloud.", date: "Hace 3 días" }
     ],
+    notifications: [
+        { 
+            id: 1, 
+            title: "Próxima Sesión", 
+            message: "Tu sesión de coaching 1:1 comienza en 15 minutos.", 
+            type: "alert", 
+            date: new Date(), 
+            read: false,
+            link: '/coaching'
+        },
+        { 
+            id: 2, 
+            title: "Curso Completado", 
+            message: "¡Felicidades! Has completado 'Fundamentos de Gestión'.", 
+            type: "success", 
+            date: new Date(), 
+            read: false,
+            link: '/certificate'
+        },
+        { 
+            id: 3, 
+            title: "Nueva Respuesta", 
+            message: "Elena comentó en tu publicación del foro.", 
+            type: "message", 
+            date: new Date(Date.now() - 86400000), // Yesterday
+            read: true,
+            link: '/community'
+        },
+        { 
+            id: 4, 
+            title: "Bienvenido", 
+            message: "Explora las nuevas rutas de aprendizaje disponibles.", 
+            type: "info", 
+            date: new Date(Date.now() - 172800000), // 2 days ago
+            read: true,
+            link: '/explore'
+        }
+    ],
 
     updateProfile: (data) => set((state) => ({ profile: { ...state.profile, ...data } })),
     addSkill: (skill) => set((state) => {
@@ -116,5 +168,14 @@ export const useUserStore = create<UserState>((set) => ({
             date: "Justo ahora"
         };
         return { reviews: [newReview, ...state.reviews] };
-    })
+    }),
+    markNotificationAsRead: (id) => set((state) => ({
+        notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n)
+    })),
+    markAllNotificationsAsRead: () => set((state) => ({
+        notifications: state.notifications.map(n => ({ ...n, read: true }))
+    })),
+    getUnreadCount: () => {
+        return get().notifications.filter(n => !n.read).length;
+    }
 }));
