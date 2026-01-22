@@ -340,39 +340,7 @@ const HomePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* 3. Daily Insight / Tip Card (Dynamic) */}
-                <div className="px-6">
-                    <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-4 text-white shadow-lg shadow-indigo-500/20 relative overflow-hidden">
-                        {/* Abstract Background Shapes */}
-                        <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/20 rounded-full blur-2xl"></div>
-                        <div className="absolute bottom-0 left-1/2 -ml-12 -mb-8 w-24 h-24 bg-purple-400/20 rounded-full blur-xl"></div>
-                        
-                        <div className="relative z-10 flex gap-4 items-start">
-                            <div className="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
-                                <span className="material-symbols-filled text-yellow-300 text-[20px]">lightbulb</span>
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex justify-between items-start mb-1">
-                                    <h3 className="text-sm font-bold">Dosis Diaria: {dailyTip.category}</h3>
-                                    <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-medium backdrop-blur-sm">{dailyTip.readTime}</span>
-                                </div>
-                                <h4 className="text-sm font-extrabold text-white mb-1">{dailyTip.title}</h4>
-                                <p className="text-xs text-indigo-100 leading-relaxed mb-3 line-clamp-2">
-                                    {dailyTip.preview}
-                                </p>
-                                <button 
-                                    onClick={() => setShowTipModal(true)}
-                                    className="text-xs font-bold bg-white text-indigo-600 px-3 py-1.5 rounded-lg shadow-sm hover:bg-indigo-50 transition-colors flex items-center gap-1"
-                                >
-                                    Leer tip completo
-                                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. Continue Learning (Redesigned Button) */}
+                {/* 2. Continue Learning (Redesigned Button) - MOVED HERE */}
                 <div className="px-6 w-full animate-fadeIn">
                     <div className="flex items-center justify-between mb-2 px-1">
                         <h3 className="text-sm font-bold text-[#111318] dark:text-white">Tu Aprendizaje</h3>
@@ -405,6 +373,38 @@ const HomePage: React.FC = () => {
                             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                         </div>
                     </button>
+                </div>
+
+                {/* 3. Daily Insight / Tip Card (Dynamic) */}
+                <div className="px-6">
+                    <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-4 text-white shadow-lg shadow-indigo-500/20 relative overflow-hidden">
+                        {/* Abstract Background Shapes */}
+                        <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/20 rounded-full blur-2xl"></div>
+                        <div className="absolute bottom-0 left-1/2 -ml-12 -mb-8 w-24 h-24 bg-purple-400/20 rounded-full blur-xl"></div>
+                        
+                        <div className="relative z-10 flex gap-4 items-start">
+                            <div className="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+                                <span className="material-symbols-filled text-yellow-300 text-[20px]">lightbulb</span>
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex justify-between items-start mb-1">
+                                    <h3 className="text-sm font-bold">Dosis Diaria: {dailyTip.category}</h3>
+                                    <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-medium backdrop-blur-sm">{dailyTip.readTime}</span>
+                                </div>
+                                <h4 className="text-sm font-extrabold text-white mb-1">{dailyTip.title}</h4>
+                                <p className="text-xs text-indigo-100 leading-relaxed mb-3 line-clamp-2">
+                                    {dailyTip.preview}
+                                </p>
+                                <button 
+                                    onClick={() => setShowTipModal(true)}
+                                    className="text-xs font-bold bg-white text-indigo-600 px-3 py-1.5 rounded-lg shadow-sm hover:bg-indigo-50 transition-colors flex items-center gap-1"
+                                >
+                                    Leer tip completo
+                                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* 5. Explora por Categoría (New Section) */}
