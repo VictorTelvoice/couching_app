@@ -372,46 +372,39 @@ const HomePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* 2. Continue Learning */}
-                <div className="px-6 w-full">
-                    <div className="flex items-center justify-between mb-3 px-1">
-                        <h3 className="text-sm font-bold text-[#111318] dark:text-white">Continuar Aprendiendo</h3>
-                        <Link to="/my-list" className="text-xs font-bold text-primary">Ver historial</Link>
+                {/* 2. Continue Learning (Redesigned Button) */}
+                <div className="px-6 w-full animate-fadeIn">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                        <h3 className="text-sm font-bold text-[#111318] dark:text-white">Tu Aprendizaje</h3>
+                        <Link to="/my-list" className="text-xs font-bold text-primary">Ver todo</Link>
                     </div>
 
-                    <div onClick={() => navigate('/course-detail')} className="relative w-full rounded-2xl bg-white dark:bg-surface-dark shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden group cursor-pointer transition-transform hover:scale-[1.01]">
-                        <div className="h-32 w-full bg-cover bg-center relative" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBYZqHe1di07VJu2R_FctHZnSADG0RrVDkN26QKILxnNYrm_AiasxJmpPOlyBj2TD-rWWqEswKQhGrtcIK79jTRHUcpXm2AN-e6_fzSH6MTmIKSCp_infGsCVZ55DORnB0uNlH1yEQSrqNmB4D88t5IVh8AigzOs4a-J86GZU_cYfPALrWnwRolru2meSMAg6JqiURTIKkxgnna57nWIWl8wCmVR1iHL6Z1CotkfUVEtlNcjFHsyCmxHcoAq1e7GHr4-wtS8IyOy1k")'}}>
-                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors"></div>
-                            
-                            {/* Prominent Play Button */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="size-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white shadow-lg group-hover:scale-110 transition-transform">
-                                     <span className="material-symbols-filled text-[32px]">play_arrow</span>
-                                </div>
-                            </div>
-                            
-                            <div className="absolute top-3 left-3">
-                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/20 backdrop-blur-md text-[10px] font-bold text-white border border-white/10">
-                                    <span className="material-symbols-filled text-[12px] animate-pulse">play_circle</span>
-                                    En curso
-                                </span>
-                            </div>
+                    <button
+                        onClick={() => navigate('/course-detail')}
+                        className="w-full bg-white dark:bg-surface-dark p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3 group relative overflow-hidden text-left hover:border-primary/30 transition-all"
+                    >
+                        {/* Progress Background (Subtle) */}
+                        <div className="absolute bottom-0 left-0 h-1 bg-primary/10 w-full">
+                            <div className="h-full bg-primary w-[65%]"></div>
                         </div>
-                        <div className="p-4 relative">
-                            <h3 className="text-lg font-bold leading-tight text-gray-900 dark:text-white pr-2 mb-1">Tácticas Avanzadas de Negociación</h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Módulo 3 • 5 min restantes</p>
-                            
-                            <div className="flex flex-col gap-1.5">
-                                <div className="flex justify-between text-[10px] font-bold text-gray-400">
-                                    <span>Progreso General</span>
-                                    <span className="text-primary">65%</span>
-                                </div>
-                                <div className="h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                    <div className="h-full bg-secondary rounded-full shadow-[0_0_10px_rgba(0,212,163,0.4)]" style={{width: '65%'}}></div>
-                                </div>
-                            </div>
+
+                        {/* Icon/Thumbnail */}
+                        <div className="size-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                            <span className="material-symbols-filled text-[24px]">play_circle</span>
                         </div>
-                    </div>
+
+                        {/* Text Info */}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide mb-0.5">Reanudar Mentoría</p>
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">Tácticas Avanzadas de Negociación</h4>
+                            <p className="text-[10px] text-gray-500">Módulo 3 • 5 min restantes</p>
+                        </div>
+
+                        {/* Arrow Action */}
+                        <div className="size-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </div>
+                    </button>
                 </div>
 
                 {/* 5. Explora por Categoría (New Section) */}
