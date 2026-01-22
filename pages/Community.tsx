@@ -418,16 +418,16 @@ const CommunityPage: React.FC = () => {
                                 <div className="flex gap-4">
                                     <button 
                                         onClick={() => handleLike(post.id)}
-                                        className={`flex items-center gap-1.5 transition-colors group ${post.isLiked ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}
+                                        className={`flex items-center gap-1.5 transition-all duration-200 active:scale-90 group ${post.isLiked ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}
                                     >
-                                        <span className={`material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform ${post.isLiked ? 'fill-current material-symbols-filled' : ''}`}>thumb_up</span>
+                                        <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${post.isLiked ? 'fill-current material-symbols-filled scale-125 -rotate-12' : 'group-hover:scale-110'}`}>thumb_up</span>
                                         <span className="text-xs font-medium">{post.likes}</span>
                                     </button>
                                     <button 
                                         onClick={() => toggleComments(post.id)}
-                                        className="flex items-center gap-1.5 text-gray-500 hover:text-primary transition-colors group"
+                                        className={`flex items-center gap-1.5 transition-all duration-200 active:scale-90 group ${post.showComments ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}
                                     >
-                                        <span className="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">chat_bubble</span>
+                                        <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${post.showComments ? 'material-symbols-filled scale-110' : 'group-hover:scale-110'}`}>chat_bubble</span>
                                         <span className="text-xs font-medium">{post.commentsCount}</span>
                                     </button>
                                 </div>
@@ -466,7 +466,7 @@ const CommunityPage: React.FC = () => {
 
                             {/* Comments Section */}
                             {post.showComments && post.comments.length > 0 && (
-                                <div className="flex flex-col gap-3 mt-2 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl">
+                                <div className="flex flex-col gap-3 mt-2 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl animate-fadeIn">
                                     {post.comments.map(comment => (
                                         <div key={comment.id} className="flex gap-2.5 items-start">
                                             <div className="size-7 rounded-full bg-cover shrink-0 mt-0.5" style={{backgroundImage: `url("${comment.avatar}")`}}></div>

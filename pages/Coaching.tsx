@@ -205,7 +205,7 @@ const CoachingPage: React.FC = () => {
                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{coach.rating}</span>
                                     <span className="text-xs text-slate-400 ml-1">• {coach.company}</span>
                                 </div>
-                                <div className="flex flex-wrap gap-1.5 mt-auto">
+                                <div className="flex flex-wrap gap-1.5 mb-3">
                                     {coach.skills.slice(0, 2).map(skill => (
                                         <span key={skill} className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-bold">
                                             {skill}
@@ -213,6 +213,15 @@ const CoachingPage: React.FC = () => {
                                     ))}
                                     {coach.skills.length > 2 && <span className="px-2 py-0.5 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-400 text-[10px] font-bold">+{coach.skills.length - 2}</span>}
                                 </div>
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/mentor-profile/${coach.id}`);
+                                    }}
+                                    className="w-full mt-auto py-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-primary hover:text-white text-gray-600 dark:text-gray-300 text-[10px] font-bold transition-colors border border-gray-100 dark:border-gray-700 flex items-center justify-center gap-1"
+                                >
+                                    Ver Perfil
+                                </button>
                             </div>
                         ))}
                     </div>
