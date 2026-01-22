@@ -3,7 +3,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA2QmYQyH9mAcJGiewgudZiXB1LmDs7Ues",
+  apiKey: "AIzaSyDmE4yvLQFxKnjofSTr29RuStzRkYU_i54",
   authDomain: "couching-app-f8eb6.firebaseapp.com",
   projectId: "couching-app-f8eb6",
   storageBucket: "couching-app-f8eb6.firebasestorage.app",
@@ -16,5 +16,3 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
-
-// Actualización credenciales v2

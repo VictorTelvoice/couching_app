@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth, db, googleProvider } from '../firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
@@ -14,7 +15,9 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+// Fix: Making children optional in the props type to avoid TS error when using as a JSX wrapper.
+// This resolves the error in index.tsx: Property 'children' is missing in type '{}' but required in type '{ children: ReactNode; }'
+export const AuthProvider = ({ children }: { children?: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
