@@ -39,7 +39,7 @@ export interface Notification {
     title: string;
     message: string;
     type: 'alert' | 'success' | 'info' | 'message';
-    date: Date;
+    date: Date | string;
     read: boolean;
     link?: string;
 }
@@ -70,7 +70,7 @@ interface UserState {
     
     // Actions
     updateProfile: (data: Partial<UserProfile>) => void;
-    setFullData: (data: Partial<UserState>) => void;
+    setFullData: (data: Partial<UserState> & { triggerCelebration?: Badge | null }) => void;
     addSkill: (skill: string) => void;
     removeSkill: (skill: string) => void;
     unlockBadge: (id: number) => void;
@@ -116,7 +116,11 @@ export const useUserStore = create<UserState>((set, get) => ({
 
     updateProfile: (data) => set((state) => ({ profile: { ...state.profile, ...data } })),
     
-    setFullData: (data) => set((state) => ({ ...state, ...data })),
+    setFullData: (data) => set((state) => ({ 
+        ...state, 
+        ...data,
+        recentBadgeEarned: data.triggerCelebration || state.recentBadgeEarned
+    })),
 
     addSkill: (skill) => set((state) => {
         if (!skill.trim() || state.skills.includes(skill.trim())) return state;
@@ -133,7 +137,6 @@ export const useUserStore = create<UserState>((set, get) => ({
                 date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) 
             };
             
-            // Generar notificación automática
             const newNote: Notification = {
                 id: Date.now(),
                 title: "¡Insignia Desbloqueada!",

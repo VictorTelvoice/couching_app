@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
@@ -31,9 +32,10 @@ const NotificationsPage: React.FC = () => {
         });
 
         // Sort each group by date desc
-        groups.today.sort((a, b) => b.date.getTime() - a.date.getTime());
-        groups.yesterday.sort((a, b) => b.date.getTime() - a.date.getTime());
-        groups.older.sort((a, b) => b.date.getTime() - a.date.getTime());
+        // Fix: Use new Date() to safely call getTime() on string | Date types
+        groups.today.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        groups.yesterday.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        groups.older.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         return groups;
     }, [notifications]);

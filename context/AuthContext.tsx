@@ -2,8 +2,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth, db, googleProvider } from '../firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { useUserStore, DEFAULT_BADGES } from '../store/useUserStore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { useUserStore, DEFAULT_BADGES, Notification } from '../store/useUserStore';
 
 interface AuthContextType {
   user: User | null;
@@ -20,8 +20,6 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const setFullData = useUserStore((state) => state.setFullData);
-  const unlockBadge = useUserStore((state) => state.unlockBadge);
-  const addNotification = useUserStore((state) => state.addNotification);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -45,7 +43,10 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
               badges: userData.badges || DEFAULT_BADGES,
               mySessions: userData.mySessions || [],
               savedContent: userData.savedContent || [],
-              notifications: userData.notifications || []
+              notifications: (userData.notifications || []).map((n: any) => ({
+                  ...n,
+                  date: n.date?.toDate ? n.date.toDate() : new Date(n.date)
+              }))
             });
           }
         }
@@ -67,7 +68,27 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
       const userSnap = await getDoc(userRef);
       
       if (!userSnap.exists()) {
-        // Documento inicial para nuevos usuarios
+        // --- PREPARAR DATOS INICIALES ATÓMICOS ---
+        const todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+        
+        // 1. Marcar insignia Pionero (ID 0) como ganada
+        const initialBadges = DEFAULT_BADGES.map(b => b.id === 0 ? {
+            ...b,
+            earned: true,
+            date: todayStr
+        } : b);
+
+        // 2. Crear notificación de bienvenida
+        const welcomeNote: Notification = {
+            id: Date.now(),
+            title: "¡Bienvenido a GrowthLab! 🚀",
+            message: "Estamos felices de tenerte. Aquí podrás conectar con mentores, realizar micro-cursos y seguir tu crecimiento profesional.",
+            type: 'info',
+            date: new Date(),
+            read: false,
+            link: '/explore'
+        };
+
         const initialData = {
           uid: user.uid,
           profile: {
@@ -84,33 +105,20 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
             nextLevelXp: 500
           },
           skills: [],
-          badges: DEFAULT_BADGES,
+          badges: initialBadges,
           mySessions: [],
           savedContent: [],
-          notifications: [],
+          notifications: [welcomeNote],
           lastLogin: new Date().toISOString()
         };
         
+        // Guardar todo de una vez en Firestore
         await setDoc(userRef, initialData);
-        setFullData(initialData);
-
-        // --- ACCIONES DE BIENVENIDA ---
-        // 1. Desbloquear insignia Pionero (ID 0)
-        unlockBadge(0);
         
-        // 2. Notificación de Bienvenida
-        addNotification({
-          title: "¡Bienvenido a GrowthLab! 🚀",
-          message: "Estamos felices de tenerte. Aquí podrás conectar con mentores, realizar micro-cursos y seguir tu crecimiento profesional.",
-          type: 'info',
-          link: '/explore'
-        });
-
-        // 3. Persistir estos cambios iniciales de bienvenida en Firestore
-        const state = useUserStore.getState();
-        await updateDoc(userRef, {
-            badges: state.badges,
-            notifications: state.notifications
+        // Actualizar store local y disparar celebración
+        setFullData({
+            ...initialData,
+            triggerCelebration: initialBadges[0]
         });
 
       } else {
