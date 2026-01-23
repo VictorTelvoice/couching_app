@@ -5,6 +5,13 @@ import MainNavigation from '../components/Navigation';
 import { useUserStore, Badge } from '../store/useUserStore';
 import { useAuth } from '../context/AuthContext';
 
+// Logotipo vectorial integrado: Sombrero de estudiante (birrete) en azul primario
+const GrowthLabLogo = ({ className = "size-16" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" className="fill-primary" />
+    </svg>
+);
+
 const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
     const { user, loading, signInWithGoogle, logout } = useAuth();
@@ -70,8 +77,8 @@ const ProfilePage: React.FC = () => {
                 
                 {!user ? (
                     <div className="flex flex-col items-center justify-center pt-10 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 animate-fadeIn">
-                        <div className="size-24 bg-white rounded-3xl flex items-center justify-center mb-8 shadow-md border border-gray-100 p-4">
-                            <img src="https://i.ibb.co/ZzV3GmT/couchfy-logo.png" alt="GrowthLab Logo" className="w-full h-full object-contain" />
+                        <div className="size-24 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-8 shadow-md border border-gray-50 dark:border-gray-700">
+                            <GrowthLabLogo className="size-16" />
                         </div>
                         <h2 className="text-slate-900 dark:text-white text-3xl font-extrabold mb-2 text-center tracking-tight">GrowthLab</h2>
                         <p className="text-slate-500 dark:text-gray-400 text-center text-sm mb-10 px-6 font-medium leading-relaxed">
