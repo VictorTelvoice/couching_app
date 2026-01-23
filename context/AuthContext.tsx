@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth, db, googleProvider } from '../firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { useUserStore, DEFAULT_BADGES } from '../store/useUserStore';
 
 interface AuthContextType {
@@ -20,6 +20,8 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const setFullData = useUserStore((state) => state.setFullData);
+  const unlockBadge = useUserStore((state) => state.unlockBadge);
+  const addNotification = useUserStore((state) => state.addNotification);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -27,23 +29,28 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
         setUser(currentUser);
         
         if (currentUser) {
-          // Sync user data from Firestore
           const userRef = doc(db, "users", currentUser.uid);
           const userSnap = await getDoc(userRef);
           
           if (userSnap.exists()) {
             const userData = userSnap.data();
             setFullData({
-              profile: userData.profile || {},
+              profile: {
+                ...userData.profile,
+                name: userData.profile?.name || currentUser.displayName || "Usuario",
+                avatar: userData.profile?.avatar || currentUser.photoURL || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
+                email: userData.profile?.email || currentUser.email || "",
+              },
               skills: userData.skills || [],
               badges: userData.badges || DEFAULT_BADGES,
               mySessions: userData.mySessions || [],
-              savedContent: userData.savedContent || []
+              savedContent: userData.savedContent || [],
+              notifications: userData.notifications || []
             });
           }
         }
       } catch (error) {
-        console.error("Error during auth state sync:", error);
+        console.error("Error durante la sincronización de datos de Firestore:", error);
       } finally {
         setLoading(false);
       }
@@ -60,6 +67,7 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
       const userSnap = await getDoc(userRef);
       
       if (!userSnap.exists()) {
+        // Documento inicial para nuevos usuarios
         const initialData = {
           uid: user.uid,
           profile: {
@@ -79,25 +87,46 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
           badges: DEFAULT_BADGES,
           mySessions: [],
           savedContent: [],
+          notifications: [],
           lastLogin: new Date().toISOString()
         };
+        
         await setDoc(userRef, initialData);
         setFullData(initialData);
+
+        // --- ACCIONES DE BIENVENIDA ---
+        // 1. Desbloquear insignia Pionero (ID 0)
+        unlockBadge(0);
+        
+        // 2. Notificación de Bienvenida
+        addNotification({
+          title: "¡Bienvenido a GrowthLab! 🚀",
+          message: "Estamos felices de tenerte. Aquí podrás conectar con mentores, realizar micro-cursos y seguir tu crecimiento profesional.",
+          type: 'info',
+          link: '/explore'
+        });
+
+        // 3. Persistir estos cambios iniciales de bienvenida en Firestore
+        const state = useUserStore.getState();
+        await updateDoc(userRef, {
+            badges: state.badges,
+            notifications: state.notifications
+        });
+
       } else {
         await setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true });
       }
       
     } catch (error) {
-      console.error("Error signing in with Google", error);
+      console.error("Error al iniciar sesión con Google", error);
     }
   };
 
   const logout = async () => {
     try {
       await signOut(auth);
-      // Reset store on logout if needed or handle via subscription
     } catch (error) {
-      console.error("Error signing out", error);
+      console.error("Error al cerrar sesión", error);
     }
   };
 

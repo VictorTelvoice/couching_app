@@ -1,12 +1,16 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
+import { doc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 const EditSkillsPage: React.FC = () => {
     const navigate = useNavigate();
     const { skills, addSkill, removeSkill } = useUserStore();
     const [newSkill, setNewSkill] = useState("");
     const [skillToDelete, setSkillToDelete] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const suggestedSkills = ["Agile", "Scrum", "Python", "Marketing Digital", "Ventas B2B", "Oratoria"];
 
@@ -23,8 +27,21 @@ const EditSkillsPage: React.FC = () => {
         }
     };
 
-    const handleSave = () => {
-        navigate('/profile');
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            // Sincronización con Firestore
+            if (auth.currentUser) {
+                const userRef = doc(db, "users", auth.currentUser.uid);
+                await updateDoc(userRef, { skills: skills });
+            }
+            navigate('/profile');
+        } catch (error) {
+            console.error("Error al guardar habilidades en Firestore:", error);
+            alert("No se pudieron guardar las habilidades. Inténtalo de nuevo.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const confirmDelete = () => {
@@ -43,7 +60,13 @@ const EditSkillsPage: React.FC = () => {
                     </button>
                     <h1 className="text-slate-900 dark:text-white text-xl font-bold leading-tight">Habilidades</h1>
                 </div>
-                <button onClick={handleSave} className="text-primary font-bold text-sm hover:opacity-80 transition-opacity">Guardar</button>
+                <button 
+                    onClick={handleSave} 
+                    disabled={isSaving}
+                    className={`text-primary font-bold text-sm hover:opacity-80 transition-opacity ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    {isSaving ? 'Guardando...' : 'Guardar'}
+                </button>
             </header>
 
             <main className="flex-1 overflow-y-auto hide-scrollbar px-6 py-4 flex flex-col gap-6">

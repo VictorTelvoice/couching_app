@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 
 export interface Badge {
@@ -65,6 +66,7 @@ interface UserState {
     savedContent: number[];
     reviews: Review[];
     notifications: Notification[];
+    recentBadgeEarned: Badge | null;
     
     // Actions
     updateProfile: (data: Partial<UserProfile>) => void;
@@ -72,20 +74,22 @@ interface UserState {
     addSkill: (skill: string) => void;
     removeSkill: (skill: string) => void;
     unlockBadge: (id: number) => void;
+    clearCelebration: () => void;
     toggleSave: (id: number) => void;
     addReview: (review: Omit<Review, 'id' | 'author' | 'avatar' | 'date'>) => void;
+    addNotification: (note: Omit<Notification, 'id' | 'date' | 'read'>) => void;
     markNotificationAsRead: (id: number) => void;
     markAllNotificationsAsRead: () => void;
     getUnreadCount: () => number;
 }
 
 export const DEFAULT_BADGES: Badge[] = [
+    { id: 0, name: "Pionero", desc: "Te has unido a la comunidad de GrowthLab", icon: 'rocket_launch', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', earned: false, progress: 0, border: 'border-primary/20', filled: true },
     { id: 1, name: "Racha de 7 días", desc: "Aprendizaje continuo por una semana", icon: 'local_fire_department', color: 'text-accent-orange', bg: 'bg-orange-50 dark:bg-orange-900/20', earned: false, progress: 0, border: 'border-dashed border-slate-200 dark:border-slate-700 opacity-70', filled: false },
     { id: 2, name: "Maestro de Negociación", desc: "Completar curso avanzado", icon: 'handshake', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', earned: false, progress: 0, border: 'border-dashed border-slate-200 dark:border-slate-700 opacity-70', filled: false },
     { id: 3, name: "Colaborador Estrella", desc: "Top 10% en contribuciones", icon: 'star', color: 'text-primary', bg: 'bg-blue-50 dark:bg-blue-900/20', earned: false, progress: 0, border: 'border-dashed border-slate-200 dark:border-slate-700 opacity-70', filled: false },
     { id: 4, name: "Liderazgo Agile", desc: "Finalizar ruta de liderazgo", icon: 'military_tech', color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', earned: false, progress: 0, border: 'border-dashed border-slate-200 dark:border-slate-700 opacity-70', filled: false },
     { id: 5, name: "Gurú de Datos", desc: "Analítica avanzada nivel 2", icon: 'analytics', color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-900/20', earned: false, progress: 0, border: 'border-dashed border-slate-200 dark:border-slate-700 opacity-70', filled: false },
-    { id: 6, name: "Comunicador", desc: "5 presentaciones exitosas", icon: 'record_voice_over', color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20', earned: false, progress: 0, border: 'border-dashed border-slate-200 dark:border-slate-700 opacity-70', filled: false },
 ];
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -108,6 +112,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     savedContent: [],
     reviews: [],
     notifications: [],
+    recentBadgeEarned: null,
 
     updateProfile: (data) => set((state) => ({ profile: { ...state.profile, ...data } })),
     
@@ -118,9 +123,38 @@ export const useUserStore = create<UserState>((set, get) => ({
         return { skills: [...state.skills, skill.trim()] };
     }),
     removeSkill: (skill) => set((state) => ({ skills: state.skills.filter(s => s !== skill) })),
-    unlockBadge: (id) => set((state) => ({
-        badges: state.badges.map(b => b.id === id ? { ...b, earned: true, date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) } : b)
-    })),
+    
+    unlockBadge: (id) => set((state) => {
+        const badge = state.badges.find(b => b.id === id);
+        if (badge && !badge.earned) {
+            const unlockedBadge = { 
+                ...badge, 
+                earned: true, 
+                date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) 
+            };
+            
+            // Generar notificación automática
+            const newNote: Notification = {
+                id: Date.now(),
+                title: "¡Insignia Desbloqueada!",
+                message: `Has ganado la insignia "${badge.name}". ¡Sigue así!`,
+                type: 'success',
+                date: new Date(),
+                read: false,
+                link: '/badges'
+            };
+
+            return {
+                badges: state.badges.map(b => b.id === id ? unlockedBadge : b),
+                notifications: [newNote, ...state.notifications],
+                recentBadgeEarned: unlockedBadge
+            };
+        }
+        return state;
+    }),
+
+    clearCelebration: () => set({ recentBadgeEarned: null }),
+
     toggleSave: (id) => set((state) => {
         const isSaved = state.savedContent.includes(id);
         return {
@@ -140,6 +174,15 @@ export const useUserStore = create<UserState>((set, get) => ({
             date: "Justo ahora"
         };
         return { reviews: [newReview, ...state.reviews] };
+    }),
+    addNotification: (noteData) => set((state) => {
+        const newNote: Notification = {
+            ...noteData,
+            id: Date.now(),
+            date: new Date(),
+            read: false
+        };
+        return { notifications: [newNote, ...state.notifications] };
     }),
     markNotificationAsRead: (id) => set((state) => ({
         notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n)

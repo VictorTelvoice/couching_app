@@ -1,11 +1,15 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
+import { doc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 const EditProfilePage: React.FC = () => {
     const navigate = useNavigate();
     const { profile, updateProfile } = useUserStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Initialize form with store data
     const [formData, setFormData] = useState({
@@ -18,7 +22,6 @@ const EditProfilePage: React.FC = () => {
         avatar: profile.avatar
     });
 
-    // Ensure state updates if store changes externally (optional safeguard)
     useEffect(() => {
         setFormData({
             name: profile.name,
@@ -52,9 +55,29 @@ const EditProfilePage: React.FC = () => {
         fileInputRef.current?.click();
     };
 
-    const handleSave = () => {
-        updateProfile(formData);
-        navigate('/profile');
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            // Sincronización con Firestore (Persistencia Real)
+            if (auth.currentUser) {
+                const userRef = doc(db, "users", auth.currentUser.uid);
+                await updateDoc(userRef, { 
+                    profile: {
+                        ...profile, // Mantener nivel, xp, etc.
+                        ...formData
+                    }
+                });
+            }
+            
+            // Actualización local para feedback inmediato
+            updateProfile(formData);
+            navigate('/profile');
+        } catch (error) {
+            console.error("Error al persistir cambios en Firestore:", error);
+            alert("Hubo un error al guardar tus datos. Por favor, inténtalo de nuevo.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -66,7 +89,13 @@ const EditProfilePage: React.FC = () => {
                     </button>
                     <h1 className="text-slate-900 dark:text-white text-xl font-bold leading-tight">Editar Perfil</h1>
                 </div>
-                <button onClick={handleSave} className="text-primary font-bold text-sm hover:opacity-80 transition-opacity">Guardar</button>
+                <button 
+                    onClick={handleSave} 
+                    disabled={isSaving}
+                    className={`text-primary font-bold text-sm hover:opacity-80 transition-opacity ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    {isSaving ? 'Guardando...' : 'Guardar'}
+                </button>
             </header>
 
             <main className="flex-1 overflow-y-auto hide-scrollbar px-6 py-4">
@@ -91,20 +120,6 @@ const EditProfilePage: React.FC = () => {
                 <div className="flex flex-col gap-5">
                     
                     <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">URL de Foto de Perfil</label>
-                        <div className="relative">
-                            <input 
-                                type="text" 
-                                value={formData.avatar}
-                                onChange={(e) => handleChange('avatar', e.target.value)}
-                                placeholder="https://..."
-                                className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                            />
-                            <span className="material-symbols-outlined absolute right-3 top-3 text-gray-400 text-[20px]">image</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
                         <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Nombre Completo</label>
                         <div className="relative">
                             <input 
@@ -127,19 +142,6 @@ const EditProfilePage: React.FC = () => {
                                 className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                             />
                             <span className="material-symbols-outlined absolute right-3 top-3 text-gray-400 text-[20px]">work</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Correo Electrónico</label>
-                         <div className="relative">
-                            <input 
-                                type="email" 
-                                value={formData.email}
-                                onChange={(e) => handleChange('email', e.target.value)}
-                                className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                            />
-                            <span className="material-symbols-outlined absolute right-3 top-3 text-gray-400 text-[20px]">mail</span>
                         </div>
                     </div>
 

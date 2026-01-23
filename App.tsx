@@ -7,7 +7,6 @@ import CoachingPage from './pages/Coaching';
 import CommunityPage from './pages/Community';
 import ProfilePage from './pages/Profile';
 import CertificatePage from './pages/Certificate';
-// Corrected import path from './ranking' to './pages/Ranking' to match project structure
 import RankingPage from './pages/Ranking';
 import NotificationsPage from './pages/Notifications';
 import SettingsPage from './pages/Settings';
@@ -23,6 +22,7 @@ import MentorProfilePage from './pages/MentorProfile';
 import MyListPage from './pages/MyList';
 import CalendarPage from './pages/Calendar';
 import ServicesHubPage from './pages/ServicesHub';
+import BadgeCelebration from './components/BadgeCelebration';
 
 const App: React.FC = () => {
     const { loading } = useAuth();
@@ -62,6 +62,9 @@ const App: React.FC = () => {
                     <Route path="/badges" element={<BadgesPage />} />
                     <Route path="/category/:id" element={<CategoryPage />} />
                 </Routes>
+                
+                {/* Overlay de celebración global */}
+                <BadgeCelebration />
             </div>
         </HashRouter>
     );
