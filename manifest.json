@@ -1,7 +1,7 @@
 {
   "name": "GrowthLab",
   "short_name": "GrowthLab",
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f6f6f8",
   "theme_color": "#1152d4",
