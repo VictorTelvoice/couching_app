@@ -1,8 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { updateProfile as updateAuthProfile } from 'firebase/auth';
+import { auth, db, storage } from '../firebase';
 
 const EditProfilePage: React.FC = () => {
     const navigate = useNavigate();
@@ -55,51 +58,77 @@ const EditProfilePage: React.FC = () => {
     };
 
     const handleSave = async () => {
+        if (!auth.currentUser) {
+            alert("No hay una sesión activa.");
+            return;
+        }
+
         setIsSaving(true);
         
-        // Limpieza de Datos: Firestore NO acepta 'undefined'. 
-        // Convertimos cualquier valor undefined o nulo a cadena vacía.
-        const cleanedFormData = { ...formData };
-        Object.keys(cleanedFormData).forEach(key => {
-            const k = key as keyof typeof cleanedFormData;
-            if (cleanedFormData[k] === undefined || cleanedFormData[k] === null) {
-                cleanedFormData[k] = "";
-            }
-        });
-
-        const fullProfileToSave = {
-            ...profile,
-            ...cleanedFormData
-        };
-
-        // Doble verificación de limpieza para el objeto final que va a Firestore
-        Object.keys(fullProfileToSave).forEach(key => {
-            const k = key as keyof typeof fullProfileToSave;
-            if (fullProfileToSave[k] === undefined || fullProfileToSave[k] === null) {
-                (fullProfileToSave as any)[k] = "";
-            }
-        });
-
-        console.log('Datos a enviar a Firestore:', fullProfileToSave);
-
         try {
-            // Sincronización con Firestore (Persistencia Real)
-            if (auth.currentUser) {
-                const userRef = doc(db, "users", auth.currentUser.uid);
+            let finalAvatarUrl = formData.avatar;
+
+            // 1. Subida a Storage si es una imagen nueva (base64)
+            if (formData.avatar.startsWith('data:image')) {
+                console.log('Subiendo nueva imagen a Firebase Storage...');
+                const storageRef = ref(storage, `profile_images/${auth.currentUser.uid}`);
                 
-                // Cambiamos updateDoc por setDoc con { merge: true }
-                // Esto es más seguro si el documento o algunos campos anidados no existen aún.
-                await setDoc(userRef, { 
-                    profile: fullProfileToSave
-                }, { merge: true });
+                // Subimos la cadena data_url directamente
+                await uploadString(storageRef, formData.avatar, 'data_url');
+                
+                // Obtenemos la URL pública
+                finalAvatarUrl = await getDownloadURL(storageRef);
+                console.log('Imagen subida con éxito:', finalAvatarUrl);
+
+                // 2. Actualizar Firebase Auth (native user profile)
+                // Esto hace que la foto cambie en todos los componentes que usen auth.currentUser
+                await updateAuthProfile(auth.currentUser, {
+                    photoURL: finalAvatarUrl
+                });
             }
+
+            // También actualizamos el nombre en Auth si ha cambiado
+            if (formData.name !== auth.currentUser.displayName) {
+                await updateAuthProfile(auth.currentUser, {
+                    displayName: formData.name
+                });
+            }
+
+            // 3. Limpieza de Datos para Firestore
+            // Convertimos cualquier valor undefined o nulo a cadena vacía para evitar errores de Firestore
+            const cleanedFormData = { 
+                ...formData,
+                avatar: finalAvatarUrl // Usamos la URL (ya sea la vieja o la nueva de Storage)
+            };
+
+            const fullProfileToSave = {
+                ...profile,
+                ...cleanedFormData
+            };
+
+            // Aseguramos que ningún campo sea undefined antes de enviar
+            Object.keys(fullProfileToSave).forEach(key => {
+                const k = key as keyof typeof fullProfileToSave;
+                if (fullProfileToSave[k] === undefined || fullProfileToSave[k] === null) {
+                    (fullProfileToSave as any)[k] = "";
+                }
+            });
+
+            console.log('Datos a enviar a Firestore:', fullProfileToSave);
+
+            // 4. Sincronización con Firestore (Persistencia Real)
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            await setDoc(userRef, { 
+                profile: fullProfileToSave
+            }, { merge: true });
             
-            // Actualización local para feedback inmediato
+            // 5. Actualización local (Zustand) para feedback inmediato
             updateProfile(cleanedFormData);
+            
             navigate('/profile');
-        } catch (error) {
-            console.error("Error al persistir cambios en Firestore:", error);
-            alert("Hubo un error al guardar tus datos. Por favor, inténtalo de nuevo.");
+        } catch (error: any) {
+            console.error("Error completo al persistir cambios:", error);
+            alert(`Error al guardar: ${error.message || "Por favor, inténtalo de nuevo."}`);
         } finally {
             setIsSaving(false);
         }
@@ -177,7 +206,7 @@ const EditProfilePage: React.FC = () => {
                                 type="tel" 
                                 value={formData.phone}
                                 onChange={(e) => handleChange('phone', e.target.value)}
-                                className="w-full bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                             />
                             <span className="material-symbols-outlined absolute right-3 top-3 text-gray-400 text-[20px]">call</span>
                         </div>
@@ -190,7 +219,7 @@ const EditProfilePage: React.FC = () => {
                                 type="text" 
                                 value={formData.linkedin}
                                 onChange={(e) => handleChange('linkedin', e.target.value)}
-                                className="w-full bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                             />
                             <span className="material-symbols-outlined absolute right-3 top-3 text-gray-400 text-[20px]">link</span>
                         </div>
@@ -202,7 +231,7 @@ const EditProfilePage: React.FC = () => {
                             rows={4}
                             value={formData.bio}
                             onChange={(e) => handleChange('bio', e.target.value)}
-                            className="w-full bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
+                            className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
                         />
                     </div>
                 </div>
