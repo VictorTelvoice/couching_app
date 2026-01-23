@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
 import { useUserStore, Badge } from '../store/useUserStore';
@@ -26,6 +26,16 @@ const ProfilePage: React.FC = () => {
 
     const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
     const [badgeFilter, setBadgeFilter] = useState<'all' | 'earned' | 'locked'>('all');
+
+    // Calcular nivel dinámicamente basado en insignias
+    const earnedBadgesCount = useMemo(() => badges.filter(b => b.earned).length, [badges]);
+    const displayLevel = earnedBadgesCount || 1; // Si no hay insignias, sigue siendo Nivel 1 (Pionero)
+    
+    // Determinar nombre del nivel (Nivel 1 siempre es Pionero)
+    const displayLevelName = useMemo(() => {
+        if (displayLevel === 1) return "Pionero";
+        return storeProfile.levelName || "Miembro";
+    }, [displayLevel, storeProfile.levelName]);
 
     const handleGoogleLogin = async () => {
         setAuthError(null);
@@ -76,8 +86,8 @@ const ProfilePage: React.FC = () => {
         linkedin: storeProfile.linkedin,
         bio: storeProfile.bio,
         avatar: user?.photoURL || storeProfile.avatar,
-        level: storeProfile.level,
-        levelName: storeProfile.levelName,
+        level: displayLevel,
+        levelName: displayLevelName,
         xp: storeProfile.xp,
         nextLevelXp: storeProfile.nextLevelXp
     };
@@ -221,7 +231,7 @@ const ProfilePage: React.FC = () => {
                         <div className="relative w-fit mx-auto mb-6">
                             <div className="bg-primary/5 dark:bg-primary/20 border border-primary/10 dark:border-primary/30 text-primary dark:text-blue-300 px-6 py-2 rounded-full text-xs font-bold text-center flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
                                 <span className="material-symbols-filled text-accent-orange" style={{fontSize: '18px'}}>workspace_premium</span>
-                                <span>Nivel {displayProfile.level} — {displayProfile.levelName || 'Miembro'}</span>
+                                <span>Nivel {displayProfile.level} — {displayProfile.levelName}</span>
                             </div>
                             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-[85%] h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden ring-4 ring-white dark:ring-[#1e293b]">
                                 <div 
