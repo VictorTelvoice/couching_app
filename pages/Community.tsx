@@ -418,16 +418,16 @@ const CommunityPage: React.FC = () => {
                                 <div className="flex gap-4">
                                     <button 
                                         onClick={() => handleLike(post.id)}
-                                        className={`flex items-center gap-1.5 transition-all duration-200 active:scale-90 group ${post.isLiked ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}
+                                        className={`flex items-center gap-1.5 transition-all duration-300 hover:scale-110 active:scale-90 group ${post.isLiked ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}
                                     >
-                                        <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${post.isLiked ? 'fill-current material-symbols-filled scale-125 -rotate-12' : 'group-hover:scale-110'}`}>thumb_up</span>
+                                        <span className={`material-symbols-outlined text-[20px] transition-all duration-300 ${post.isLiked ? 'fill-current material-symbols-filled scale-125 -rotate-12' : 'group-hover:scale-110 group-active:rotate-12'}`}>thumb_up</span>
                                         <span className="text-xs font-medium">{post.likes}</span>
                                     </button>
                                     <button 
                                         onClick={() => toggleComments(post.id)}
-                                        className={`flex items-center gap-1.5 transition-all duration-200 active:scale-90 group ${post.showComments ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}
+                                        className={`flex items-center gap-1.5 transition-all duration-300 hover:scale-110 active:scale-90 group ${post.showComments ? 'text-primary' : 'text-gray-500 hover:text-primary'}`}
                                     >
-                                        <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${post.showComments ? 'material-symbols-filled scale-110' : 'group-hover:scale-110'}`}>chat_bubble</span>
+                                        <span className={`material-symbols-outlined text-[20px] transition-all duration-300 ${post.showComments ? 'material-symbols-filled scale-110' : 'group-hover:scale-110 group-active:-translate-y-1'}`}>chat_bubble</span>
                                         <span className="text-xs font-medium">{post.commentsCount}</span>
                                     </button>
                                 </div>

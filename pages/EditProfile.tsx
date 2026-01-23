@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 const EditProfilePage: React.FC = () => {
@@ -13,24 +12,24 @@ const EditProfilePage: React.FC = () => {
 
     // Initialize form with store data
     const [formData, setFormData] = useState({
-        name: profile.name,
-        role: profile.role,
-        email: profile.email,
-        phone: profile.phone,
-        linkedin: profile.linkedin,
-        bio: profile.bio,
-        avatar: profile.avatar
+        name: profile.name || "",
+        role: profile.role || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        linkedin: profile.linkedin || "",
+        bio: profile.bio || "",
+        avatar: profile.avatar || ""
     });
 
     useEffect(() => {
         setFormData({
-            name: profile.name,
-            role: profile.role,
-            email: profile.email,
-            phone: profile.phone,
-            linkedin: profile.linkedin,
-            bio: profile.bio,
-            avatar: profile.avatar
+            name: profile.name || "",
+            role: profile.role || "",
+            email: profile.email || "",
+            phone: profile.phone || "",
+            linkedin: profile.linkedin || "",
+            bio: profile.bio || "",
+            avatar: profile.avatar || ""
         });
     }, [profile]);
 
@@ -57,20 +56,46 @@ const EditProfilePage: React.FC = () => {
 
     const handleSave = async () => {
         setIsSaving(true);
+        
+        // Limpieza de Datos: Firestore NO acepta 'undefined'. 
+        // Convertimos cualquier valor undefined o nulo a cadena vacía.
+        const cleanedFormData = { ...formData };
+        Object.keys(cleanedFormData).forEach(key => {
+            const k = key as keyof typeof cleanedFormData;
+            if (cleanedFormData[k] === undefined || cleanedFormData[k] === null) {
+                cleanedFormData[k] = "";
+            }
+        });
+
+        const fullProfileToSave = {
+            ...profile,
+            ...cleanedFormData
+        };
+
+        // Doble verificación de limpieza para el objeto final que va a Firestore
+        Object.keys(fullProfileToSave).forEach(key => {
+            const k = key as keyof typeof fullProfileToSave;
+            if (fullProfileToSave[k] === undefined || fullProfileToSave[k] === null) {
+                (fullProfileToSave as any)[k] = "";
+            }
+        });
+
+        console.log('Datos a enviar a Firestore:', fullProfileToSave);
+
         try {
             // Sincronización con Firestore (Persistencia Real)
             if (auth.currentUser) {
                 const userRef = doc(db, "users", auth.currentUser.uid);
-                await updateDoc(userRef, { 
-                    profile: {
-                        ...profile, // Mantener nivel, xp, etc.
-                        ...formData
-                    }
-                });
+                
+                // Cambiamos updateDoc por setDoc con { merge: true }
+                // Esto es más seguro si el documento o algunos campos anidados no existen aún.
+                await setDoc(userRef, { 
+                    profile: fullProfileToSave
+                }, { merge: true });
             }
             
             // Actualización local para feedback inmediato
-            updateProfile(formData);
+            updateProfile(cleanedFormData);
             navigate('/profile');
         } catch (error) {
             console.error("Error al persistir cambios en Firestore:", error);
@@ -152,7 +177,7 @@ const EditProfilePage: React.FC = () => {
                                 type="tel" 
                                 value={formData.phone}
                                 onChange={(e) => handleChange('phone', e.target.value)}
-                                className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                className="w-full bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                             />
                             <span className="material-symbols-outlined absolute right-3 top-3 text-gray-400 text-[20px]">call</span>
                         </div>
@@ -165,7 +190,7 @@ const EditProfilePage: React.FC = () => {
                                 type="text" 
                                 value={formData.linkedin}
                                 onChange={(e) => handleChange('linkedin', e.target.value)}
-                                className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                className="w-full bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-xl pl-4 pr-10 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                             />
                             <span className="material-symbols-outlined absolute right-3 top-3 text-gray-400 text-[20px]">link</span>
                         </div>
@@ -177,7 +202,7 @@ const EditProfilePage: React.FC = () => {
                             rows={4}
                             value={formData.bio}
                             onChange={(e) => handleChange('bio', e.target.value)}
-                            className="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
+                            className="w-full bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
                         />
                     </div>
                 </div>
