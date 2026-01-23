@@ -5,7 +5,6 @@ import MainNavigation from '../components/Navigation';
 import { useUserStore, Badge } from '../store/useUserStore';
 import { useAuth } from '../context/AuthContext';
 
-// Logotipo vectorial integrado: Sombrero de estudiante (birrete) en azul primario
 const GrowthLabLogo = ({ className = "size-16" }: { className?: string }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" className="fill-primary" />
@@ -14,18 +13,58 @@ const GrowthLabLogo = ({ className = "size-16" }: { className?: string }) => (
 
 const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
-    const { user, loading, signInWithGoogle, logout } = useAuth();
+    const { user, loading, signInWithGoogle, loginWithEmail, registerWithEmail, logout } = useAuth();
     const { profile: storeProfile, badges } = useUserStore();
     
+    // Auth Form State
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
+    const [authError, setAuthError] = useState<string | null>(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(false);
+
     const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
     const [badgeFilter, setBadgeFilter] = useState<'all' | 'earned' | 'locked'>('all');
 
-    const handleLogin = async () => {
+    const handleGoogleLogin = async () => {
+        setAuthError(null);
         try {
             await signInWithGoogle();
             navigate('/');
-        } catch (error) {
-            console.error("Error en login:", error);
+        } catch (error: any) {
+            console.error("Error en login Google:", error);
+            setAuthError("No se pudo iniciar sesión con Google.");
+        }
+    };
+
+    const handleEmailAuth = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setAuthError(null);
+        
+        if (!email || !password || (isRegistering && !name)) {
+            setAuthError("Por favor completa todos los campos.");
+            return;
+        }
+
+        setIsAuthLoading(true);
+        try {
+            if (isRegistering) {
+                await registerWithEmail(email, password, name);
+            } else {
+                await loginWithEmail(email, password);
+            }
+            navigate('/');
+        } catch (error: any) {
+            console.error("Error en auth email:", error);
+            let message = "Ocurrió un error inesperado.";
+            if (error.code === 'auth/email-already-in-use') message = "Este correo ya está registrado.";
+            if (error.code === 'auth/weak-password') message = "La contraseña debe tener al menos 6 caracteres.";
+            if (error.code === 'auth/invalid-email') message = "El formato del correo es inválido.";
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') message = "Correo o contraseña incorrectos.";
+            setAuthError(message);
+        } finally {
+            setIsAuthLoading(false);
         }
     };
 
@@ -76,22 +115,91 @@ const ProfilePage: React.FC = () => {
             <main className="flex-1 flex flex-col px-4 gap-6 overflow-y-auto hide-scrollbar">
                 
                 {!user ? (
-                    <div className="flex flex-col items-center justify-center pt-10 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 animate-fadeIn">
-                        <div className="size-24 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-8 shadow-md border border-gray-50 dark:border-gray-700">
-                            <GrowthLabLogo className="size-16" />
+                    <div className="flex flex-col items-center justify-center pt-8 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 animate-fadeIn">
+                        <div className="size-20 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-gray-50 dark:border-gray-700">
+                            <GrowthLabLogo className="size-12" />
                         </div>
-                        <h2 className="text-slate-900 dark:text-white text-3xl font-extrabold mb-2 text-center tracking-tight">GrowthLab</h2>
-                        <p className="text-slate-500 dark:text-gray-400 text-center text-sm mb-10 px-6 font-medium leading-relaxed">
-                            Accede a tu panel personalizado y sigue tu progreso de aprendizaje.
+                        <h2 className="text-slate-900 dark:text-white text-2xl font-extrabold mb-1 text-center tracking-tight">GrowthLab</h2>
+                        <p className="text-slate-500 dark:text-gray-400 text-center text-xs mb-8 px-4 font-medium leading-relaxed">
+                            {isRegistering ? 'Crea tu cuenta para comenzar tu crecimiento.' : 'Bienvenido de nuevo a tu panel de aprendizaje.'}
                         </p>
+
+                        <form onSubmit={handleEmailAuth} className="w-full flex flex-col gap-4">
+                            {isRegistering && (
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
+                                    <input 
+                                        type="text" 
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder="Tu nombre"
+                                        className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                                    />
+                                </div>
+                            )}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Correo Electrónico</label>
+                                <input 
+                                    type="email" 
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="ejemplo@correo.com"
+                                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Contraseña</label>
+                                <input 
+                                    type="password" 
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                                />
+                            </div>
+
+                            {authError && (
+                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-3 rounded-xl">
+                                    <p className="text-[11px] text-red-600 dark:text-red-400 font-bold text-center">{authError}</p>
+                                </div>
+                            )}
+
+                            <button 
+                                type="submit"
+                                disabled={isAuthLoading}
+                                className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-2"
+                            >
+                                {isAuthLoading ? (
+                                    <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    isRegistering ? 'Crear Cuenta' : 'Ingresar'
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="w-full flex items-center gap-4 my-6">
+                            <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">O continúa con</span>
+                            <div className="h-px bg-gray-100 dark:bg-gray-800 flex-1"></div>
+                        </div>
+
                         <button 
-                            onClick={handleLogin}
-                            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+                            onClick={handleGoogleLogin}
+                            className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-slate-700 dark:text-slate-200 font-bold py-3.5 rounded-2xl shadow-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
                         >
-                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6 bg-white rounded-full p-0.5" alt="G" />
-                            Acceder con Google
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5 bg-white rounded-full p-0.5" alt="G" />
+                            Ingresar con Google
                         </button>
-                        <p className="mt-8 text-[11px] text-slate-400 text-center uppercase tracking-widest font-bold">Inicia sesión para comenzar</p>
+
+                        <button 
+                            onClick={() => {
+                                setIsRegistering(!isRegistering);
+                                setAuthError(null);
+                            }}
+                            className="mt-8 text-xs font-bold text-slate-400 hover:text-primary transition-colors"
+                        >
+                            {isRegistering ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+                        </button>
                     </div>
                 ) : (
                     <div className="relative flex flex-col items-center pt-6 pb-6 px-6 bg-white dark:bg-[#1e293b] rounded-[2rem] shadow-sm animate-fadeIn">
@@ -110,12 +218,12 @@ const ProfilePage: React.FC = () => {
                         <h2 className="text-slate-900 dark:text-white text-2xl font-bold leading-tight mb-1 text-center">{displayProfile.name}</h2>
                         <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-5 text-center">{displayProfile.role}</p>
                         
-                        <div className="relative w-full max-w-[280px] mb-6">
-                            <div className="bg-primary/5 dark:bg-primary/20 border border-primary/10 dark:border-primary/30 text-primary dark:text-blue-300 px-4 py-2 rounded-full text-xs font-bold text-center flex items-center justify-center gap-2 shadow-sm">
+                        <div className="relative w-fit mx-auto mb-6">
+                            <div className="bg-primary/5 dark:bg-primary/20 border border-primary/10 dark:border-primary/30 text-primary dark:text-blue-300 px-6 py-2 rounded-full text-xs font-bold text-center flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
                                 <span className="material-symbols-filled text-accent-orange" style={{fontSize: '18px'}}>workspace_premium</span>
-                                Nivel {displayProfile.level} - {displayProfile.levelName}
+                                <span>Nivel {displayProfile.level} — {displayProfile.levelName || 'Miembro'}</span>
                             </div>
-                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-4/5 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden ring-4 ring-white dark:ring-[#1e293b]">
+                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-[85%] h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden ring-4 ring-white dark:ring-[#1e293b]">
                                 <div 
                                     className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-1000 ease-out rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)]" 
                                     style={{width: `${progressPercent}%`}}
@@ -195,7 +303,7 @@ const ProfilePage: React.FC = () => {
 
             {selectedBadge && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-[#1e293b] w-full max-w-sm rounded-[2rem] p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 flex flex-col items-center text-center">
+                    <div className="bg-white dark:bg-[#1e293b] w-full max-sm rounded-[2rem] p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 flex flex-col items-center text-center">
                         <button 
                             onClick={() => setSelectedBadge(null)} 
                             className="absolute top-4 right-4 size-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
