@@ -1,7 +1,7 @@
 
 {
   "name": "employee-learning-hub",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Employee Learning Hub Application",
   "main": "index.tsx",
   "scripts": {
