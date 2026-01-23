@@ -70,8 +70,8 @@ const ProfilePage: React.FC = () => {
                 
                 {!user ? (
                     <div className="flex flex-col items-center justify-center pt-10 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 animate-fadeIn">
-                        <div className="size-24 bg-primary rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-primary/20">
-                            <span className="material-symbols-outlined text-white text-[48px]">school</span>
+                        <div className="size-24 bg-white rounded-3xl flex items-center justify-center mb-8 shadow-md border border-gray-100 p-4">
+                            <img src="https://i.ibb.co/ZzV3GmT/couchfy-logo.png" alt="GrowthLab Logo" className="w-full h-full object-contain" />
                         </div>
                         <h2 className="text-slate-900 dark:text-white text-3xl font-extrabold mb-2 text-center tracking-tight">GrowthLab</h2>
                         <p className="text-slate-500 dark:text-gray-400 text-center text-sm mb-10 px-6 font-medium leading-relaxed">

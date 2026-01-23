@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth, db, googleProvider } from '../firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
@@ -22,26 +23,30 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      
-      if (currentUser) {
-        // Sync user data from Firestore
-        const userRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
+      try {
+        setUser(currentUser);
         
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          setFullData({
-            profile: userData.profile,
-            skills: userData.skills || [],
-            badges: userData.badges || DEFAULT_BADGES,
-            mySessions: userData.mySessions || [],
-            savedContent: userData.savedContent || []
-          });
+        if (currentUser) {
+          // Sync user data from Firestore
+          const userRef = doc(db, "users", currentUser.uid);
+          const userSnap = await getDoc(userRef);
+          
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            setFullData({
+              profile: userData.profile || {},
+              skills: userData.skills || [],
+              badges: userData.badges || DEFAULT_BADGES,
+              mySessions: userData.mySessions || [],
+              savedContent: userData.savedContent || []
+            });
+          }
         }
+      } catch (error) {
+        console.error("Error during auth state sync:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
     return () => unsubscribe();
   }, [setFullData]);
@@ -55,7 +60,6 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
       const userSnap = await getDoc(userRef);
       
       if (!userSnap.exists()) {
-        // Initialize New User Data "en cero"
         const initialData = {
           uid: user.uid,
           profile: {
@@ -91,6 +95,7 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
   const logout = async () => {
     try {
       await signOut(auth);
+      // Reset store on logout if needed or handle via subscription
     } catch (error) {
       console.error("Error signing out", error);
     }

@@ -1,10 +1,13 @@
+
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import HomePage from './pages/Home';
 import CoachingPage from './pages/Coaching';
 import CommunityPage from './pages/Community';
 import ProfilePage from './pages/Profile';
 import CertificatePage from './pages/Certificate';
+// Corrected import path from './ranking' to './pages/Ranking' to match project structure
 import RankingPage from './pages/Ranking';
 import NotificationsPage from './pages/Notifications';
 import SettingsPage from './pages/Settings';
@@ -22,6 +25,16 @@ import CalendarPage from './pages/Calendar';
 import ServicesHubPage from './pages/ServicesHub';
 
 const App: React.FC = () => {
+    const { loading } = useAuth();
+
+    if (loading) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background-light dark:bg-background-dark">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
     return (
         <HashRouter>
             <div className="font-display">

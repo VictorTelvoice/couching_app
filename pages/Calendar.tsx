@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
@@ -53,6 +54,8 @@ const CalendarPage: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+    const [isBooking, setIsBooking] = useState(false);
+    const [bookingSuccess, setBookingSuccess] = useState(false);
     
     const pickerRef = useRef<HTMLDivElement>(null);
 
@@ -145,6 +148,45 @@ const CalendarPage: React.FC = () => {
         setSelectedTime(null); // Reset time when date changes
     };
 
+    const handleConfirmBooking = () => {
+        if (!selectedTime || !selectedDate || !mentor) return;
+        
+        setIsBooking(true);
+        // Simulate API call
+        setTimeout(() => {
+            setIsBooking(false);
+            setBookingSuccess(true);
+        }, 1500);
+    };
+
+    if (bookingSuccess) {
+        return (
+            <div className="flex h-screen w-full flex-col items-center justify-center bg-background-light dark:bg-background-dark px-8 text-center animate-in fade-in zoom-in duration-500">
+                <div className="size-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6 shadow-xl shadow-green-500/10">
+                    <span className="material-symbols-filled text-green-600 dark:text-green-400 text-[48px]">check_circle</span>
+                </div>
+                <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">¡Cita Confirmada!</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
+                    Tu sesión con <span className="font-bold text-slate-900 dark:text-white">{mentor.name}</span> ha sido programada para el <span className="font-bold text-primary">{selectedDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span> a las <span className="font-bold text-primary">{selectedTime}</span>.
+                </p>
+                <div className="w-full flex flex-col gap-3">
+                    <button 
+                        onClick={() => navigate('/coaching')}
+                        className="w-full py-4 rounded-2xl bg-primary text-white font-bold shadow-lg shadow-primary/30 transition-all active:scale-[0.98]"
+                    >
+                        Volver a Coaching
+                    </button>
+                    <button 
+                        onClick={() => navigate('/')}
+                        className="w-full py-4 rounded-2xl bg-white dark:bg-surface-dark text-slate-700 dark:text-slate-200 font-bold border border-gray-100 dark:border-gray-800 transition-all active:scale-[0.98]"
+                    >
+                        Ir al Inicio
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark shadow-xl overflow-hidden pb-32">
             <header className="flex items-center justify-between px-6 py-5 sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
@@ -162,7 +204,7 @@ const CalendarPage: React.FC = () => {
                 <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 mb-6 flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
                     <div className="relative shrink-0">
                          <div className="size-16 rounded-full bg-cover bg-center border border-gray-100 dark:border-gray-600" style={{backgroundImage: `url("${mentor.image}")`}}></div>
-                         <div className="absolute bottom-0 right-0 size-4 bg-green-500 border-2 border-white dark:border-surface-dark rounded-full"></div>
+                         <div className={`absolute bottom-0 right-0 size-4 bg-green-500 border-2 border-white dark:border-surface-dark rounded-full`}></div>
                     </div>
                     <div className="flex-1 min-w-0">
                         <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-tight mb-1">{mentor.name}</h2>
@@ -331,19 +373,35 @@ const CalendarPage: React.FC = () => {
                              </div>
                          </div>
                          <button 
-                            className="w-full py-4 rounded-2xl bg-[#111318] dark:bg-white dark:text-[#111318] text-white text-base font-bold shadow-xl flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all"
+                            disabled={isBooking}
+                            onClick={handleConfirmBooking}
+                            className="w-full py-4 rounded-2xl bg-[#111318] dark:bg-white dark:text-[#111318] text-white text-base font-bold shadow-xl flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            <span>Confirmar Reserva</span>
-                            <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                            {isBooking ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    <span>Confirmando...</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <span>Confirmar Reserva</span>
+                                    <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                                </>
+                            )}
                         </button>
                      </div>
                 ) : (
-                    <button 
-                        disabled
-                        className="w-full py-4 rounded-2xl bg-gray-200 dark:bg-gray-800 text-gray-400 font-bold cursor-not-allowed"
-                    >
-                        Selecciona una hora
-                    </button>
+                    <div className="flex flex-col gap-2">
+                        <div className="px-2 text-center">
+                            <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Selecciona una fecha y un horario para continuar</p>
+                        </div>
+                        <button 
+                            disabled
+                            className="w-full py-4 rounded-2xl bg-gray-200 dark:bg-gray-800 text-gray-400 font-bold cursor-not-allowed"
+                        >
+                            Selecciona una hora
+                        </button>
+                    </div>
                 )}
             </div>
         </div>

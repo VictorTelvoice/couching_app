@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
@@ -75,7 +76,6 @@ const CircularProgress = ({ percentage }: { percentage: number }) => {
     );
 };
 
-// --- DATA: Daily Tips Database ---
 const DAILY_TIPS = [
     {
         id: 1,
@@ -166,7 +166,6 @@ const DAILY_TIPS = [
     }
 ];
 
-// --- DATA: Categories and Courses (Mirrors Category Page Data) ---
 const HOME_CATEGORIES = [
     { id: 'liderazgo', name: 'Liderazgo', color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300' },
     { id: 'ventas', name: 'Ventas', color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300' },
@@ -210,32 +209,29 @@ const HomePage: React.FC = () => {
     const [showTipModal, setShowTipModal] = useState(false);
     const [activeCategory, setActiveCategory] = useState('liderazgo');
 
-    const unreadNotifications = getUnreadCount();
+    const unreadNotifications = getUnreadCount?.() || 0;
 
-    // Logic to select a daily tip based on the current date
     const dailyTip = useMemo(() => {
         const today = new Date();
         const startOfYear = new Date(today.getFullYear(), 0, 0);
         const diff = today.getTime() - startOfYear.getTime();
         const oneDay = 1000 * 60 * 60 * 24;
         const dayOfYear = Math.floor(diff / oneDay);
-        
-        // Use modulus to rotate through tips array
         return DAILY_TIPS[dayOfYear % DAILY_TIPS.length];
     }, []);
 
+    const firstName = (profile?.name || "Usuario").split(' ')[0];
+
     return (
         <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden pb-28 bg-background-light dark:bg-background-dark">
-            
-            {/* Header with Daily Goal */}
             <div className="flex items-center px-6 pt-8 pb-4 justify-between bg-surface-light dark:bg-background-dark sticky top-0 z-30 shadow-sm border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-3">
                     <div className="relative cursor-pointer" onClick={() => navigate('/profile')}>
-                        <div className="size-11 rounded-full bg-cover bg-center border-2 border-white dark:border-gray-700 shadow-sm" style={{backgroundImage: `url("${profile.avatar}")`}}></div>
+                        <div className="size-11 rounded-full bg-cover bg-center border-2 border-white dark:border-gray-700 shadow-sm" style={{backgroundImage: `url("${profile?.avatar || 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'}")`}}></div>
                         <div className="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-background-dark rounded-full"></div>
                     </div>
                     <div className="flex flex-col">
-                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Hola, {profile.name.split(' ')[0]}</p>
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Hola, {firstName}</p>
                         <h2 className="text-sm font-bold leading-tight flex items-center gap-1">
                             ¡A aprender! <span className="text-lg">🚀</span>
                         </h2>
@@ -257,36 +253,27 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-6 w-full pt-6">
-                
-                {/* 1. Quick Actions Grid */}
                 <div className="px-6 animate-fadeIn">
                     <h3 className="text-sm font-bold text-[#111318] dark:text-white mb-3 px-1">Acciones Rápidas</h3>
                     <div className="grid grid-cols-4 gap-4">
-                        {/* Resume Course */}
                         <div onClick={() => navigate('/course-detail')} className="flex flex-col items-center gap-2 cursor-pointer group">
                              <div className="size-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm border border-indigo-100 dark:border-indigo-800">
                                 <span className="material-symbols-outlined text-[26px]">play_circle</span>
                             </div>
                             <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300 text-center leading-tight">Retomar</span>
                         </div>
-
-                        {/* Community (Replaces Saved) */}
                         <div onClick={() => navigate('/community')} className="flex flex-col items-center gap-2 cursor-pointer group">
                             <div className="size-14 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm border border-orange-100 dark:border-orange-800">
                                 <span className="material-symbols-outlined text-[26px]">groups</span>
                             </div>
                             <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300 text-center leading-tight">Comunidad</span>
                         </div>
-
-                        {/* Mentors */}
                         <div onClick={() => navigate('/coaching-directory')} className="flex flex-col items-center gap-2 cursor-pointer group">
                             <div className="size-14 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm border border-purple-100 dark:border-purple-800">
                                 <span className="material-symbols-outlined text-[26px]">supervisor_account</span>
                             </div>
                             <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300 text-center leading-tight">Mentores</span>
                         </div>
-
-                        {/* AI Coach */}
                         <div onClick={() => navigate('/coaching-chat')} className="flex flex-col items-center gap-2 cursor-pointer group">
                             <div className="size-14 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-primary flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm border border-blue-100 dark:border-blue-800">
                                 <span className="material-symbols-outlined text-[26px]">smart_toy</span>
@@ -296,31 +283,24 @@ const HomePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Welcome Video Section */}
                 <div className="px-6 flex flex-col gap-2 animate-fadeIn">
                     <div className="flex items-center justify-between px-1">
                         <h3 className="text-sm font-bold text-[#111318] dark:text-white">Bienvenida</h3>
                     </div>
-                    
                     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-700 bg-black group cursor-pointer" onClick={() => !isVideoPlaying && setIsVideoPlaying(true)}>
                         {!isVideoPlaying ? (
                             <>
-                                {/* Welcome Man background */}
                                 <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{backgroundImage: 'url("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80")'}}></div>
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"></div>
-                                
-                                {/* Overlay Content */}
                                 <div className="absolute bottom-0 left-0 w-full p-4 flex flex-col gap-1">
                                     <h4 className="text-white font-bold text-base leading-tight">Tu viaje comienza aquí</h4>
                                     <p className="text-gray-300 text-xs line-clamp-1">Una introducción personal a tu plataforma de crecimiento.</p>
                                 </div>
-
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="size-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-lg group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-filled text-[32px] ml-1">play_arrow</span>
                                     </div>
                                 </div>
-                                
                                 <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg text-white text-[10px] font-bold flex items-center gap-1">
                                     <span className="material-symbols-outlined text-[12px]">videocam</span>
                                     2:15
@@ -345,48 +325,36 @@ const HomePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* 2. Continue Learning (Redesigned Button) - MOVED HERE */}
                 <div className="px-6 w-full animate-fadeIn">
                     <div className="flex items-center justify-between mb-2 px-1">
                         <h3 className="text-sm font-bold text-[#111318] dark:text-white">Tu Aprendizaje</h3>
                         <Link to="/my-list" className="text-xs font-bold text-primary">Ver todo</Link>
                     </div>
-
                     <button
                         onClick={() => navigate('/course-detail')}
                         className="w-full bg-white dark:bg-surface-dark p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3 group relative overflow-hidden text-left hover:border-primary/30 transition-all"
                     >
-                        {/* Progress Background (Subtle) */}
                         <div className="absolute bottom-0 left-0 h-1 bg-primary/10 w-full">
                             <div className="h-full bg-primary w-[65%]"></div>
                         </div>
-
-                        {/* Icon/Thumbnail */}
                         <div className="size-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
                             <span className="material-symbols-filled text-[24px]">play_circle</span>
                         </div>
-
-                        {/* Text Info */}
                         <div className="flex-1 min-w-0">
                             <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide mb-0.5">Reanudar Mentoría</p>
                             <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">Tácticas Avanzadas de Negociación</h4>
                             <p className="text-[10px] text-gray-500">Módulo 3 • 5 min restantes</p>
                         </div>
-
-                        {/* Arrow Action */}
                         <div className="size-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-colors">
                             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                         </div>
                     </button>
                 </div>
 
-                {/* 3. Daily Insight / Tip Card (Dynamic) */}
                 <div className="px-6">
                     <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-4 text-white shadow-lg shadow-indigo-500/20 relative overflow-hidden">
-                        {/* Abstract Background Shapes */}
                         <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/20 rounded-full blur-2xl"></div>
                         <div className="absolute bottom-0 left-1/2 -ml-12 -mb-8 w-24 h-24 bg-purple-400/20 rounded-full blur-xl"></div>
-                        
                         <div className="relative z-10 flex gap-4 items-start">
                             <div className="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
                                 <span className="material-symbols-filled text-yellow-300 text-[20px]">lightbulb</span>
@@ -412,15 +380,12 @@ const HomePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* 5. Explora por Categoría (New Section) */}
                 <div className="flex flex-col gap-3 mt-2">
                     <div className="flex items-center justify-between px-7">
                         <h3 className="text-sm font-bold text-[#111318] dark:text-white">Explorar por Categoría</h3>
                         <Link to="/explore" className="text-xs font-bold text-primary">Ver todo</Link>
                     </div>
-
                     <div className="px-7">
-                        {/* Tabs */}
                         <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-3">
                             {HOME_CATEGORIES.map((cat) => (
                                 <button
@@ -436,8 +401,6 @@ const HomePage: React.FC = () => {
                                 </button>
                             ))}
                         </div>
-
-                        {/* Course Cards */}
                         <div className="flex gap-4 overflow-x-auto hide-scrollbar snap-x pb-4">
                             {HOME_CATEGORY_COURSES[activeCategory]?.map((course: any) => (
                                 <div key={course.id} onClick={() => navigate('/course-detail')} className="group flex flex-col w-[200px] shrink-0 bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-md transition-shadow snap-start">
@@ -460,7 +423,6 @@ const HomePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Progress/Gamification Section */}
                 <div className="px-6 mt-2 pb-4">
                     <h3 className="text-sm font-bold text-[#111318] dark:text-white mb-3">Tu Progreso</h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -478,7 +440,6 @@ const HomePage: React.FC = () => {
                                 <span>¡En llamas!</span>
                             </div>
                         </Link>
-
                         <Link to="/badges" className="bg-white dark:bg-surface-dark rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between hover:border-primary/30 transition-colors group">
                              <div className="flex justify-between items-center mb-2">
                                 <p className="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider">Insignias</p>
@@ -498,7 +459,6 @@ const HomePage: React.FC = () => {
             
             <MainNavigation />
 
-            {/* FULL TIP MODAL */}
             {showTipModal && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="w-full sm:max-w-md bg-white dark:bg-[#1e293b] rounded-[2rem] p-6 shadow-2xl relative animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-300 max-h-[85vh] overflow-y-auto">
@@ -508,7 +468,6 @@ const HomePage: React.FC = () => {
                         >
                             <span className="material-symbols-outlined text-sm">close</span>
                         </button>
-
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="size-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -519,13 +478,11 @@ const HomePage: React.FC = () => {
                                     <h2 className="text-xl font-extrabold text-slate-900 dark:text-white leading-tight">{dailyTip.title}</h2>
                                 </div>
                             </div>
-
                             <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
                                 <p className="text-sm font-medium text-indigo-900 dark:text-indigo-200 italic">
                                     "{dailyTip.fullContent.intro}"
                                 </p>
                             </div>
-
                             <div className="space-y-4">
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide border-b border-gray-100 dark:border-gray-800 pb-2">Pasos Clave</h3>
                                 <ul className="space-y-3">
@@ -537,12 +494,10 @@ const HomePage: React.FC = () => {
                                     ))}
                                 </ul>
                             </div>
-
                             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                                 <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Desafío de hoy</p>
                                 <p className="text-sm font-medium text-slate-800 dark:text-white">{dailyTip.fullContent.cta}</p>
                             </div>
-
                             <button 
                                 onClick={() => setShowTipModal(false)}
                                 className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all mt-2"
