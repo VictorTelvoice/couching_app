@@ -12,7 +12,6 @@ interface ProfileBadgeProps {
     borderColor?: string;
 }
 
-// Fix: Corrected the component type definition to use generics instead of an assignment
 const ProfileBadge: React.FC<ProfileBadgeProps> = ({ icon, label, bgColor, textColor, borderColor }) => (
     <div className="flex flex-col items-center gap-1">
         <div className={`size-10 rounded-full flex items-center justify-center ${bgColor} ${textColor} ${borderColor ? `border ${borderColor}` : ''}`}>
@@ -170,7 +169,7 @@ const DAILY_TIPS = [
 const HOME_CATEGORIES = [
     { id: 'liderazgo', name: 'Liderazgo', color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300' },
     { id: 'ventas', name: 'Ventas', color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300' },
-    { id: 'tech', name: 'Tech', color: 'bg-purple-100 text-purple-600 dark:bg-blue-900/30 dark:text-purple-300' },
+    { id: 'tech', name: 'Tech', color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300' },
     { id: 'marketing', name: 'Marketing', color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-300' },
     { id: 'diseno', name: 'Diseño', color: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300' },
 ];
@@ -205,7 +204,7 @@ const HOME_CATEGORY_COURSES: Record<string, any[]> = {
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
-    const { profile, mySessions, getUnreadCount } = useUserStore();
+    const { profile, getUnreadCount } = useUserStore();
     const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const [showTipModal, setShowTipModal] = useState(false);
     const [activeCategory, setActiveCategory] = useState('liderazgo');
@@ -220,12 +219,6 @@ const HomePage: React.FC = () => {
         const dayOfYear = Math.floor(diff / oneDay);
         return DAILY_TIPS[dayOfYear % DAILY_TIPS.length];
     }, []);
-
-    // Buscar la sesión activa más reciente
-    const latestSession = useMemo(() => {
-        if (!mySessions || mySessions.length === 0) return null;
-        return [...mySessions].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
-    }, [mySessions]);
 
     const firstName = (profile?.name || "Usuario").split(' ')[0];
 
@@ -337,39 +330,27 @@ const HomePage: React.FC = () => {
                         <h3 className="text-sm font-bold text-[#111318] dark:text-white">Tu Aprendizaje</h3>
                         <Link to="/my-list" className="text-xs font-bold text-primary">Ver todo</Link>
                     </div>
-                    
-                    {latestSession ? (
-                        <button
-                            onClick={() => navigate('/course-detail')}
-                            className="w-full bg-white dark:bg-surface-dark p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3 group relative overflow-hidden text-left hover:border-primary/30 transition-all"
-                        >
-                            <div className="absolute bottom-0 left-0 h-1 bg-primary/10 w-full">
-                                <div className="h-full bg-primary transition-all duration-1000" style={{width: `${latestSession.progress}%`}}></div>
-                            </div>
-                            <div className="size-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-                                <span className="material-symbols-filled text-[24px]">play_circle</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide mb-0.5">Reanudar Mentoría</p>
-                                <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">{latestSession.title}</h4>
-                                <p className="text-[10px] text-gray-500">Módulo {latestSession.lastLessonId || 1} • {100 - latestSession.progress}% restante</p>
-                            </div>
-                            <div className="size-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-colors">
-                                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                            </div>
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => navigate('/explore')}
-                            className="w-full bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-sm border border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center gap-2 text-center"
-                        >
-                            <span className="material-symbols-outlined text-gray-300 text-[40px]">school</span>
-                            <p className="text-xs font-bold text-gray-500">No tienes cursos activos. ¡Empieza uno hoy!</p>
-                        </button>
-                    )}
+                    <button
+                        onClick={() => navigate('/course-detail')}
+                        className="w-full bg-white dark:bg-surface-dark p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3 group relative overflow-hidden text-left hover:border-primary/30 transition-all"
+                    >
+                        <div className="absolute bottom-0 left-0 h-1 bg-primary/10 w-full">
+                            <div className="h-full bg-primary w-[65%]"></div>
+                        </div>
+                        <div className="size-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                            <span className="material-symbols-filled text-[24px]">play_circle</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide mb-0.5">Reanudar Mentoría</p>
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">Tácticas Avanzadas de Negociación</h4>
+                            <p className="text-[10px] text-gray-500">Módulo 3 • 5 min restantes</p>
+                        </div>
+                        <div className="size-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </div>
+                    </button>
                 </div>
 
-                {/* Resto del contenido (Tips, Categorías, Progreso) */}
                 <div className="px-6">
                     <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-4 text-white shadow-lg shadow-indigo-500/20 relative overflow-hidden">
                         <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/20 rounded-full blur-2xl"></div>

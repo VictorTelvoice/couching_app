@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Fix: Use process.env instead of import.meta.env to resolve TypeScript errors and align with environment variable handling
+// Using env variables if available, otherwise falling back to provided defaults
 const firebaseConfig = {
   apiKey: process.env.VITE_API_KEY || "AIzaSyDmE4yvLQFxKnjofSTr29RuStzRkYU_i54",
   authDomain: process.env.VITE_AUTH_DOMAIN || "couching-app-f8eb6.firebaseapp.com",
@@ -20,8 +20,3 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
-
-// Configuración recomendada para Google Provider
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});

@@ -1,28 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
 
 const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
-    
-    // Estado para el modo oscuro detectando la clase actual en el HTML
-    const [isDarkMode, setIsDarkMode] = useState(() => 
-        document.documentElement.classList.contains('dark')
-    );
-
-    // Efecto para aplicar el cambio y persistir en localStorage
-    const toggleDarkMode = () => {
-        const newMode = !isDarkMode;
-        setIsDarkMode(newMode);
-        if (newMode) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        }
-    };
 
     return (
         <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark shadow-xl overflow-hidden pb-24">
@@ -61,12 +42,8 @@ const SettingsPage: React.FC = () => {
                                     <h4 className="font-bold text-gray-900 dark:text-white text-sm">Modo Oscuro</h4>
                                 </div>
                             </div>
-                            {/* Interruptor funcional */}
-                            <div 
-                                onClick={toggleDarkMode}
-                                className={`w-12 h-7 rounded-full cursor-pointer relative transition-all duration-300 ${isDarkMode ? 'bg-secondary' : 'bg-gray-200 dark:bg-gray-700'}`}
-                            >
-                                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${isDarkMode ? 'left-6' : 'left-1'}`}></div>
+                            <div className="block w-12 h-7 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer relative transition-colors">
+                                <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-sm"></div>
                             </div>
                         </div>
                     </div>

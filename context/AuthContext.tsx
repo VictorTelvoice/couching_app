@@ -1,16 +1,9 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth, db, googleProvider } from '../firebase';
-import { 
-  signInWithPopup, 
-  signInWithRedirect, 
-  getRedirectResult, 
-  signOut, 
-  onAuthStateChanged, 
-  User
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { useUserStore, DEFAULT_BADGES, Badge } from '../store/useUserStore';
+import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { useUserStore, DEFAULT_BADGES, Notification } from '../store/useUserStore';
 
 interface AuthContextType {
   user: User | null;
@@ -26,62 +19,86 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children?: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { setFullData } = useUserStore();
-  
-  const isSyncing = useRef(false);
-
-  const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-  };
+  const setFullData = useUserStore((state) => state.setFullData);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Solo sincronizamos si no hay un proceso en marcha
-        if (!isSyncing.current) {
-          await syncUserProfile(currentUser);
+      try {
+        setUser(currentUser);
+        
+        if (currentUser) {
+          const userRef = doc(db, "users", currentUser.uid);
+          const userSnap = await getDoc(userRef);
+          
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            setFullData({
+              profile: {
+                ...userData.profile,
+                name: userData.profile?.name || currentUser.displayName || "Usuario",
+                avatar: userData.profile?.avatar || currentUser.photoURL || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
+                email: userData.profile?.email || currentUser.email || "",
+              },
+              skills: userData.skills || [],
+              badges: userData.badges || DEFAULT_BADGES,
+              mySessions: userData.mySessions || [],
+              savedContent: userData.savedContent || [],
+              notifications: (userData.notifications || []).map((n: any) => ({
+                  ...n,
+                  date: n.date?.toDate ? n.date.toDate() : new Date(n.date)
+              }))
+            });
+          }
         }
+      } catch (error) {
+        console.error("Error durante la sincronización de datos de Firestore:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [setFullData]);
 
-  const syncUserProfile = async (currentUser: User) => {
-    isSyncing.current = true;
+  const signInWithGoogle = async () => {
     try {
-      const userRef = doc(db, "users", currentUser.uid);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      
+      const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
-      const todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+      
+      if (!userSnap.exists()) {
+        // --- PREPARAR DATOS INICIALES ATÓMICOS ---
+        const todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+        
+        // 1. Marcar insignia Pionero (ID 0) como ganada
+        const initialBadges = DEFAULT_BADGES.map(b => b.id === 0 ? {
+            ...b,
+            earned: true,
+            date: todayStr
+        } : b);
 
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        setFullData({
-          profile: {
-            ...userData.profile,
-            name: userData.profile?.name || currentUser.displayName || "Usuario",
-            avatar: userData.profile?.avatar || currentUser.photoURL || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
-            email: userData.profile?.email || currentUser.email || ""
-          },
-          skills: userData.skills || [],
-          badges: userData.badges || DEFAULT_BADGES,
-          mySessions: userData.mySessions || [],
-          savedContent: userData.savedContent || [],
-          notifications: (userData.notifications || []).map((n: any) => ({
-              ...n,
-              date: n.date?.toDate ? n.date.toDate() : new Date(n.date)
-          }))
-        });
-      } else {
-        const initialBadges = DEFAULT_BADGES.map(b => b.id === 0 ? { ...b, earned: true, date: todayStr } : b);
+        // 2. Crear notificación de bienvenida
+        const welcomeNote: Notification = {
+            id: Date.now(),
+            title: "¡Bienvenido a GrowthLab! 🚀",
+            message: "Estamos felices de tenerte. Aquí podrás conectar con mentores, realizar micro-cursos y seguir tu crecimiento profesional.",
+            type: 'info',
+            date: new Date(),
+            read: false,
+            link: '/explore'
+        };
+
         const initialData = {
-          uid: currentUser.uid,
+          uid: user.uid,
           profile: {
-            name: currentUser.displayName || "Usuario Nuevo",
+            name: user.displayName || "Usuario Nuevo",
             role: "Miembro",
-            email: currentUser.email || "",
-            avatar: currentUser.photoURL || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
+            email: user.email || "",
+            phone: "",
+            linkedin: "",
+            bio: "",
+            avatar: user.photoURL || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
             level: 1,
             levelName: "Pionero",
             xp: 0,
@@ -91,48 +108,33 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
           badges: initialBadges,
           mySessions: [],
           savedContent: [],
-          notifications: [{
-            id: Date.now(),
-            title: "¡Bienvenido a GrowthLab! 🚀",
-            message: "Tu cuenta ha sido creada exitosamente.",
-            type: 'info',
-            date: new Date(),
-            read: false,
-            link: '/explore'
-          }]
+          notifications: [welcomeNote],
+          lastLogin: new Date().toISOString()
         };
+        
+        // Guardar todo de una vez en Firestore
         await setDoc(userRef, initialData);
-        setFullData(initialData);
-      }
-    } catch (err) {
-      console.error("Error en syncUserProfile:", err);
-    } finally {
-      isSyncing.current = false;
-    }
-  };
+        
+        // Actualizar store local y disparar celebración
+        setFullData({
+            ...initialData,
+            triggerCelebration: initialBadges[0]
+        });
 
-  const signInWithGoogle = async () => {
-    try {
-      if (isMobile()) {
-        await signInWithRedirect(auth, googleProvider);
       } else {
-        const result = await signInWithPopup(auth, googleProvider);
-        if (result.user) {
-          await syncUserProfile(result.user);
-        }
+        await setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true });
       }
-    } catch (error: any) {
-      console.error("Error Google Sign-In:", error);
-      alert("Error al iniciar sesión: " + (error.message || "Verifica tu conexión."));
+      
+    } catch (error) {
+      console.error("Error al iniciar sesión con Google", error);
     }
   };
 
   const logout = async () => {
     try {
       await signOut(auth);
-      setUser(null);
     } catch (error) {
-      console.error("Error Logout:", error);
+      console.error("Error al cerrar sesión", error);
     }
   };
 
