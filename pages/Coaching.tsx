@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
@@ -9,6 +10,8 @@ const CoachingPage: React.FC = () => {
     const [selectedCoachId, setSelectedCoachId] = useState(1);
     const [selectedDateIndex, setSelectedDateIndex] = useState(0); // Default to today (index 0)
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
+    const [isBooking, setIsBooking] = useState(false);
+    const [bookingSuccess, setBookingSuccess] = useState(false);
 
     // Generate the next 14 days dynamically for horizontal scroll
     const upcomingDates = useMemo(() => {
@@ -94,6 +97,45 @@ const CoachingPage: React.FC = () => {
     ];
 
     const activeCoach = coaches.find(c => c.id === selectedCoachId) || coaches[0];
+
+    const handleConfirmSession = () => {
+        if (!selectedTime) return;
+        setIsBooking(true);
+        // Simulate a booking process
+        setTimeout(() => {
+            setIsBooking(false);
+            setBookingSuccess(true);
+        }, 1500);
+    };
+
+    if (bookingSuccess) {
+        const selectedDate = upcomingDates[selectedDateIndex];
+        return (
+            <div className="flex h-screen w-full flex-col items-center justify-center bg-background-light dark:bg-background-dark px-8 text-center animate-in fade-in zoom-in duration-500">
+                <div className="size-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6 shadow-xl shadow-green-500/10">
+                    <span className="material-symbols-filled text-green-600 dark:text-green-400 text-[48px]">check_circle</span>
+                </div>
+                <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">¡Cita Confirmada!</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
+                    Tu sesión con <span className="font-bold text-slate-900 dark:text-white">{activeCoach.name}</span> ha sido programada para el <span className="font-bold text-primary">{selectedDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span> a las <span className="font-bold text-primary">{selectedTime}</span>.
+                </p>
+                <div className="w-full flex flex-col gap-3">
+                    <button 
+                        onClick={() => setBookingSuccess(false)}
+                        className="w-full py-4 rounded-2xl bg-primary text-white font-bold shadow-lg shadow-primary/30 transition-all active:scale-[0.98]"
+                    >
+                        Entendido
+                    </button>
+                    <button 
+                        onClick={() => navigate('/')}
+                        className="w-full py-4 rounded-2xl bg-white dark:bg-surface-dark text-slate-700 dark:text-slate-200 font-bold border border-gray-100 dark:border-gray-800 transition-all active:scale-[0.98]"
+                    >
+                        Ir al Inicio
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden pb-32 bg-background-light dark:bg-background-dark">
@@ -302,20 +344,30 @@ const CoachingPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Confirmation Button - Moved Here */}
+                    {/* Confirmation Button */}
                     <div className="mt-2">
                         <button 
-                            disabled={!selectedTime}
+                            disabled={!selectedTime || isBooking}
+                            onClick={handleConfirmSession}
                             className={`
                                 w-full py-4 rounded-2xl text-white text-base font-bold shadow-xl flex items-center justify-center gap-2 transition-all duration-300
                                 ${selectedTime 
-                                    ? 'bg-[#111318] dark:bg-white dark:text-[#111318] hover:scale-[1.02] active:scale-[0.98]' 
+                                    ? 'bg-primary hover:bg-primary-dark hover:scale-[1.02] active:scale-[0.98]' 
                                     : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-80'
                                 }
                             `}
                         >
-                            <span>{selectedTime ? 'Confirmar Reserva' : 'Selecciona un horario'}</span>
-                            {selectedTime && <span className="material-symbols-outlined text-[20px]">arrow_forward</span>}
+                            {isBooking ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    <span>Confirmando...</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <span>{selectedTime ? 'Confirmar sesión' : 'Selecciona un horario'}</span>
+                                    {selectedTime && <span className="material-symbols-outlined text-[20px]">arrow_forward</span>}
+                                </>
+                            )}
                         </button>
                     </div>
                  </div>
