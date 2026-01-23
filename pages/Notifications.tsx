@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
 import { useUserStore, Notification } from '../store/useUserStore';
@@ -7,6 +7,7 @@ import { useUserStore, Notification } from '../store/useUserStore';
 const NotificationsPage: React.FC = () => {
     const navigate = useNavigate();
     const { notifications, markNotificationAsRead, markAllNotificationsAsRead } = useUserStore();
+    const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
     // Helper to group notifications
     const groupedNotifications = useMemo(() => {
@@ -32,7 +33,6 @@ const NotificationsPage: React.FC = () => {
         });
 
         // Sort each group by date desc
-        // Fix: Use new Date() to safely call getTime() on string | Date types
         groups.today.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         groups.yesterday.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         groups.older.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -45,9 +45,15 @@ const NotificationsPage: React.FC = () => {
         if (!notification.read) {
             markNotificationAsRead(notification.id);
         }
-        // 2. Perform action/navigation if link exists
-        if (notification.link) {
-            navigate(notification.link);
+        // 2. Open details modal
+        setSelectedNotification(notification);
+    };
+
+    const handleActionClick = () => {
+        if (selectedNotification?.link) {
+            const link = selectedNotification.link;
+            setSelectedNotification(null);
+            navigate(link);
         }
     };
 
@@ -86,12 +92,9 @@ const NotificationsPage: React.FC = () => {
                                 <h4 className={`text-sm ${note.read ? 'font-semibold text-gray-700 dark:text-gray-300' : 'font-bold text-gray-900 dark:text-white'}`}>
                                     {note.title}
                                 </h4>
-                                <p className={`text-sm leading-snug ${note.read ? 'text-gray-500 dark:text-gray-500' : 'text-gray-600 dark:text-gray-300'}`}>
+                                <p className={`text-xs leading-snug line-clamp-2 ${note.read ? 'text-gray-500 dark:text-gray-500' : 'text-gray-600 dark:text-gray-300'}`}>
                                     {note.message}
                                 </p>
-                                {!note.read && (
-                                    <span className="text-[10px] text-primary font-bold mt-1">Pulsa para ver detalles</span>
-                                )}
                             </div>
                             {!note.read && (
                                 <div className="absolute top-4 right-4 size-2.5 rounded-full bg-red-500 shadow-sm animate-pulse"></div>
@@ -107,7 +110,7 @@ const NotificationsPage: React.FC = () => {
 
     return (
         <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark shadow-xl overflow-hidden pb-24">
-            <header className="flex items-center justify-between px-6 py-5 sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+            <header className="flex items-center justify-between px-6 py-5 sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-3">
                     <button onClick={() => navigate(-1)} className="text-slate-500 hover:text-slate-900 dark:hover:text-white">
                         <span className="material-symbols-outlined">arrow_back</span>
@@ -124,7 +127,7 @@ const NotificationsPage: React.FC = () => {
                 )}
             </header>
 
-            <main className="flex-1 flex flex-col gap-6 px-6 py-2 overflow-y-auto hide-scrollbar">
+            <main className="flex-1 flex flex-col gap-6 px-6 py-4 overflow-y-auto hide-scrollbar">
                 {notifications.length === 0 ? (
                      <div className="flex flex-col items-center justify-center py-20 opacity-60">
                         <span className="material-symbols-outlined text-[64px] text-gray-300 mb-4">notifications_off</span>
@@ -140,6 +143,54 @@ const NotificationsPage: React.FC = () => {
                 )}
             </main>
             <MainNavigation />
+
+            {/* Modal de Detalle de Notificación */}
+            {selectedNotification && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#1e293b] w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-300 flex flex-col border border-white/20">
+                        <button 
+                            onClick={() => setSelectedNotification(null)} 
+                            className="absolute top-6 right-6 size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-sm"
+                        >
+                            <span className="material-symbols-outlined" style={{fontSize: '20px'}}>close</span>
+                        </button>
+                        
+                        <div className="flex flex-col items-center text-center mb-6">
+                            <div className={`size-20 rounded-2xl flex items-center justify-center mb-4 shadow-lg ${getIcon(selectedNotification.type).bg} ${getIcon(selectedNotification.type).color}`}>
+                                <span className="material-symbols-outlined" style={{fontSize: '40px'}}>{getIcon(selectedNotification.type).icon}</span>
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">
+                                {new Date(selectedNotification.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white leading-tight mb-4">
+                                {selectedNotification.title}
+                            </h2>
+                            <div className="w-full bg-gray-50 dark:bg-black/20 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                <p className="text-sm text-slate-600 dark:text-gray-300 leading-relaxed text-left font-medium">
+                                    {selectedNotification.message}
+                                </p>
+                            </div>
+                        </div>
+
+                        {selectedNotification.link ? (
+                            <button 
+                                onClick={handleActionClick}
+                                className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-95"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                                Ver detalle
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={() => setSelectedNotification(null)}
+                                className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all active:scale-95"
+                            >
+                                Entendido
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
