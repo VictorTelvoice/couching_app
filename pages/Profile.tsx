@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
 import { useUserStore, Badge } from '../store/useUserStore';
@@ -70,19 +70,12 @@ const ProfilePage: React.FC = () => {
                 
                 {!user ? (
                     <div className="flex flex-col items-center justify-center pt-10 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 animate-fadeIn">
-                        <div className="size-32 bg-primary/5 rounded-3xl flex items-center justify-center mb-8 p-4 overflow-hidden">
-                            <img 
-                                src="https://i.ibb.co/ZzV3GmT/couchfy-logo.png" 
-                                alt="Couchfy Logo" 
-                                className="w-full h-auto object-contain drop-shadow-sm"
-                                onError={(e) => {
-                                    (e.target as any).src = "https://www.svgrepo.com/show/532397/heart-handshake.svg";
-                                }}
-                            />
+                        <div className="size-24 bg-primary rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-primary/20">
+                            <span className="material-symbols-outlined text-white text-[48px]">school</span>
                         </div>
-                        <h2 className="text-slate-900 dark:text-white text-3xl font-extrabold mb-2 text-center tracking-tight">Couchfy</h2>
+                        <h2 className="text-slate-900 dark:text-white text-3xl font-extrabold mb-2 text-center tracking-tight">GrowthLab</h2>
                         <p className="text-slate-500 dark:text-gray-400 text-center text-sm mb-10 px-6 font-medium leading-relaxed">
-                            Potencia tu crecimiento profesional con mentorías de expertos y rutas guiadas.
+                            Accede a tu panel personalizado y sigue tu progreso de aprendizaje.
                         </p>
                         <button 
                             onClick={handleLogin}
@@ -209,7 +202,7 @@ const ProfilePage: React.FC = () => {
                         <p className="text-sm text-slate-500 dark:text-gray-400 mb-6 px-2">{selectedBadge.desc}</p>
                         <button className="mt-6 text-sm font-bold text-primary hover:underline flex items-center gap-1">
                             <span className="material-symbols-outlined text-[18px]">share</span>
-                            Compartir en Couchfy
+                            Compartir en GrowthLab
                         </button>
                     </div>
                 </div>

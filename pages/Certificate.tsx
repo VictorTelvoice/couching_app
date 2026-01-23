@@ -11,7 +11,7 @@ const CertificatePage: React.FC = () => {
                 <button onClick={() => navigate(-1)} className="flex items-center justify-center size-10 -ml-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">
                     <span className="material-symbols-outlined" style={{fontSize: '24px'}}>arrow_back</span>
                 </button>
-                <h1 className="text-slate-900 dark:text-white text-lg font-extrabold leading-tight">Certificado Couchfy</h1>
+                <h1 className="text-slate-900 dark:text-white text-lg font-extrabold leading-tight">Certificado GrowthLab</h1>
                 <button className="flex items-center justify-center size-10 rounded-full bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 shadow-sm hover:text-primary transition-colors">
                     <span className="material-symbols-outlined" style={{fontSize: '20px'}}>share</span>
                 </button>
@@ -23,7 +23,7 @@ const CertificatePage: React.FC = () => {
                         <span className="material-symbols-filled text-green-600 dark:text-green-400" style={{fontSize: '32px'}}>check_circle</span>
                     </div>
                     <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">¡Felicitaciones!</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed px-4">Has completado con éxito tu programa en Couchfy. Aquí tienes tu certificado oficial.</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed px-4">Has completado con éxito tu programa en GrowthLab. Aquí tienes tu certificado oficial.</p>
                 </div>
 
                  <div className="relative w-full aspect-[4/3] bg-white dark:bg-[#1e293b] rounded-xl certificate-border p-6 flex flex-col items-center justify-between text-center overflow-hidden">
@@ -34,15 +34,15 @@ const CertificatePage: React.FC = () => {
                     <div className="absolute bottom-0 right-0 w-16 h-16 border-r-4 border-b-4 border-primary/20 rounded-br-xl"></div>
                     
                     <div className="flex items-center gap-2 mb-2 z-10">
-                        <div className="size-8 rounded bg-primary flex items-center justify-center text-white font-bold text-xs">CF</div>
-                        <span className="text-xs font-bold tracking-widest uppercase text-slate-400">Couchfy Official</span>
+                        <div className="size-8 rounded bg-primary flex items-center justify-center text-white font-bold text-xs">GL</div>
+                        <span className="text-xs font-bold tracking-widest uppercase text-slate-400">GrowthLab Official</span>
                     </div>
                     <div className="flex flex-col gap-1 z-10 w-full">
                         <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Certificado de Finalización</span>
                         <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-white mt-2 mb-1">Nombre del Graduado</h3>
                         <div className="w-full h-px bg-slate-200 dark:bg-slate-700 max-w-[120px] mx-auto my-1"></div>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400">ha completado satisfactoriamente el curso</p>
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-2 mx-auto max-w-[200px] leading-tight">Programa Avanzado de Mentoría</h4>
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-white mt-2 mx-auto max-w-[200px] leading-tight">Programa Avanzado de Mentoría</h4>
                     </div>
                      <div className="flex justify-between w-full items-end mt-2 z-10 pt-2 border-t border-slate-100 dark:border-slate-800/50">
                         <div className="text-left">
@@ -54,7 +54,7 @@ const CertificatePage: React.FC = () => {
                         </div>
                         <div className="text-right">
                             <p className="text-[8px] text-slate-400 uppercase tracking-wide">ID Credencial</p>
-                            <p className="text-[10px] font-medium text-slate-600 dark:text-slate-300">CF-MNT-2025-XJ</p>
+                            <p className="text-[10px] font-medium text-slate-600 dark:text-slate-300">GL-MNT-2025-XJ</p>
                         </div>
                     </div>
                 </div>
