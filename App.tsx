@@ -22,9 +22,7 @@ import MentorProfilePage from './pages/MentorProfile';
 import MyListPage from './pages/MyList';
 import CalendarPage from './pages/Calendar';
 import ServicesHubPage from './pages/ServicesHub';
-import DailyDosePage from './pages/DailyDose';
 import BadgeCelebration from './components/BadgeCelebration';
-import GlobalToast from './components/GlobalToast';
 
 const App: React.FC = () => {
     const { loading } = useAuth();
@@ -63,14 +61,10 @@ const App: React.FC = () => {
                     <Route path="/edit-skills" element={<EditSkillsPage />} />
                     <Route path="/badges" element={<BadgesPage />} />
                     <Route path="/category/:id" element={<CategoryPage />} />
-                    <Route path="/daily-dose" element={<DailyDosePage />} />
                 </Routes>
                 
                 {/* Overlay de celebración global */}
                 <BadgeCelebration />
-                
-                {/* Sistema global de notificaciones toast */}
-                <GlobalToast />
             </div>
         </HashRouter>
     );

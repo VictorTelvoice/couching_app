@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
@@ -143,7 +142,7 @@ const ProfilePage: React.FC = () => {
 
                 <div className={`flex flex-col gap-6 ${!user ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                     {/* Sección Sobre Mí */}
-                    <div className="bg-white dark:bg-[#1e293b] rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-4 animate-fadeIn" style={{ animationDelay: '100ms' }}>
+                    <div className="bg-white dark:bg-[#1e293b] rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-4">
                         <div>
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2 uppercase tracking-wider opacity-60">Sobre mí</h3>
                             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
@@ -175,25 +174,22 @@ const ProfilePage: React.FC = () => {
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
-                            {badges.slice(0, 4).map((badge, idx) => (
+                            {badges.slice(0, 4).map((badge) => (
                                 <div 
                                     key={badge.id} 
                                     onClick={() => setSelectedBadge(badge)}
                                     className={`
-                                        flex flex-col p-4 rounded-3xl transition-all cursor-pointer relative overflow-hidden h-40 animate-fadeIn
+                                        flex flex-col p-4 rounded-3xl transition-all cursor-pointer relative overflow-hidden h-40
                                         ${!badge.earned 
                                             ? 'bg-slate-50 dark:bg-[#1e293b]/50 border-2 border-dashed border-slate-200 dark:border-slate-700' 
                                             : 'bg-white dark:bg-[#1e293b] border-2 border-transparent shadow-lg hover:-translate-y-1.5 hover:shadow-xl ring-1 ring-slate-100 dark:ring-slate-800'
                                         }
                                     `}
-                                    style={{ 
-                                        ...getBadgeLiveColors(badge),
-                                        animationDelay: `${(idx + 2) * 100}ms`
-                                    }}
+                                    style={getBadgeLiveColors(badge)}
                                 >
-                                    {/* Efecto de Brillo (Shimmer) Sutil para insignias ganadas */}
+                                    {/* Efecto de Brillo (Shimmer) para insignias ganadas */}
                                     {badge.earned && (
-                                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent z-0 pointer-events-none skew-x-12"></div>
+                                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/50 dark:via-white/10 to-transparent z-0 pointer-events-none skew-x-12"></div>
                                     )}
 
                                     <div className="flex justify-between items-start mb-auto relative z-10">

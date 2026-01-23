@@ -7,7 +7,7 @@ import { auth, db } from '../firebase';
 
 const EditSkillsPage: React.FC = () => {
     const navigate = useNavigate();
-    const { skills, addSkill, removeSkill, showToast } = useUserStore();
+    const { skills, addSkill, removeSkill } = useUserStore();
     const [newSkill, setNewSkill] = useState("");
     const [skillToDelete, setSkillToDelete] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -17,7 +17,6 @@ const EditSkillsPage: React.FC = () => {
     const handleAdd = () => {
         if (newSkill.trim()) {
             addSkill(newSkill);
-            showToast(`Habilidad "${newSkill}" añadida`, 'success');
             setNewSkill("");
         }
     };
@@ -31,15 +30,15 @@ const EditSkillsPage: React.FC = () => {
     const handleSave = async () => {
         setIsSaving(true);
         try {
+            // Sincronización con Firestore
             if (auth.currentUser) {
                 const userRef = doc(db, "users", auth.currentUser.uid);
                 await updateDoc(userRef, { skills: skills });
             }
-            showToast("Habilidades actualizadas con éxito", 'success');
             navigate('/profile');
         } catch (error) {
             console.error("Error al guardar habilidades en Firestore:", error);
-            showToast("Error al guardar habilidades", 'error');
+            alert("No se pudieron guardar las habilidades. Inténtalo de nuevo.");
         } finally {
             setIsSaving(false);
         }
@@ -48,7 +47,6 @@ const EditSkillsPage: React.FC = () => {
     const confirmDelete = () => {
         if (skillToDelete) {
             removeSkill(skillToDelete);
-            showToast(`Habilidad "${skillToDelete}" eliminada`, 'info');
             setSkillToDelete(null);
         }
     };
@@ -127,10 +125,7 @@ const EditSkillsPage: React.FC = () => {
                         {suggestedSkills.filter(s => !skills.includes(s)).map((skill, index) => (
                             <button 
                                 key={index} 
-                                onClick={() => {
-                                    addSkill(skill);
-                                    showToast(`Sugerencia "${skill}" añadida`, 'success');
-                                }}
+                                onClick={() => addSkill(skill)}
                                 className="px-3 py-1.5 bg-gray-50 dark:bg-[#1e293b]/50 border border-dashed border-gray-300 dark:border-gray-700 rounded-full text-xs font-medium text-gray-500 hover:border-primary hover:text-primary transition-colors"
                             >
                                 + {skill}
