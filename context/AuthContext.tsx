@@ -73,6 +73,7 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
     const userRef = doc(db, "users", user.uid);
     const todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
     
+    // El primer badge es 'Pionero' (id: 0)
     const initialBadges = DEFAULT_BADGES.map(b => b.id === 0 ? {
         ...b,
         earned: true,
@@ -93,7 +94,7 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
       uid: user.uid,
       profile: {
         name: displayName || user.displayName || "Usuario Nuevo",
-        role: "Miembro",
+        role: "Pionero",
         email: user.email || "",
         phone: "",
         linkedin: "",
@@ -113,9 +114,11 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
     };
     
     await setDoc(userRef, initialData);
+    
+    // Disparamos la celebración del primer badge ganado
     setFullData({
         ...initialData,
-        triggerCelebration: initialBadges[0]
+        triggerCelebration: initialBadges.find(b => b.id === 0) || null
     });
   };
 
