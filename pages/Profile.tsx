@@ -28,13 +28,14 @@ const ProfilePage: React.FC = () => {
     const [badgeFilter, setBadgeFilter] = useState<'all' | 'earned' | 'locked'>('all');
 
     // Calcular nivel dinámicamente basado en insignias
+    // Si tiene 1 insignia (Pionero), el nivel es 1.
     const earnedBadgesCount = useMemo(() => badges.filter(b => b.earned).length, [badges]);
-    const displayLevel = earnedBadgesCount || 1; // Si no hay insignias, sigue siendo Nivel 1 (Pionero)
+    const displayLevel = Math.max(1, earnedBadgesCount); 
     
     // Determinar nombre del nivel (Nivel 1 siempre es Pionero)
     const displayLevelName = useMemo(() => {
         if (displayLevel === 1) return "Pionero";
-        return storeProfile.levelName || "Miembro";
+        return storeProfile.levelName || "Mentor en Potencia";
     }, [displayLevel, storeProfile.levelName]);
 
     const handleGoogleLogin = async () => {
