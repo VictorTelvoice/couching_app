@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
@@ -13,17 +14,22 @@ const GrowthLabLogo = ({ className = "size-16" }: { className?: string }) => (
 
 const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
-    const { user, loading, signInWithGoogle, logout } = useAuth();
+    const { user, loading: authLoading, signInWithGoogle, logout } = useAuth();
     const { profile: storeProfile, badges } = useUserStore();
     
     const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
 
     const handleLogin = async () => {
+        if (isLoggingIn) return;
+        setIsLoggingIn(true);
         try {
             await signInWithGoogle();
-            navigate('/');
+            // El redireccionamiento o sincronización se maneja en el AuthContext
         } catch (error) {
-            console.error("Error en login:", error);
+            console.error("Error en login UI:", error);
+        } finally {
+            setIsLoggingIn(false);
         }
     };
 
@@ -60,7 +66,7 @@ const ProfilePage: React.FC = () => {
         };
     };
 
-    if (loading) {
+    if (authLoading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background-light dark:bg-background-dark">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -94,11 +100,24 @@ const ProfilePage: React.FC = () => {
                         </p>
                         <button 
                             onClick={handleLogin}
-                            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+                            disabled={isLoggingIn}
+                            className={`w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98] ${isLoggingIn ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6 bg-white rounded-full p-0.5" alt="G" />
-                            Acceder con Google
+                            {isLoggingIn ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    <span>Conectando...</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6 bg-white rounded-full p-0.5" alt="G" />
+                                    Acceder con Google
+                                </>
+                            )}
                         </button>
+                        <p className="mt-4 text-[10px] text-gray-400 text-center max-w-xs leading-tight">
+                            Al continuar, aceptas nuestros términos y condiciones de uso.
+                        </p>
                     </div>
                 ) : (
                     <div className="relative flex flex-col items-center pt-6 pb-6 px-6 bg-white dark:bg-[#1e293b] rounded-[2rem] shadow-sm animate-fadeIn border border-gray-100 dark:border-gray-800">

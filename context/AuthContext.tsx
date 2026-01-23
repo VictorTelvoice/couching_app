@@ -7,7 +7,8 @@ import {
   getRedirectResult, 
   signOut, 
   onAuthStateChanged, 
-  User 
+  User,
+  browserPopupBlockedError
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { useUserStore, DEFAULT_BADGES, Notification, Badge } from '../store/useUserStore';
@@ -28,16 +29,13 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { setFullData } = useUserStore();
   
-  // Flag para evitar race conditions en la creación de perfil
   const isProcessingAuth = useRef(false);
 
-  // Helper para detectar móvil
   const isMobile = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
   };
 
   useEffect(() => {
-    // Procesar resultado de redirección (específicamente para PWA en móviles)
     const handleRedirectResult = async () => {
         try {
             const result = await getRedirectResult(auth);
@@ -73,10 +71,10 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
       const userRef = doc(db, "users", currentUser.uid);
       const userSnap = await getDoc(userRef);
       
+      const todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        const todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-        
         let currentBadges = userData.badges || DEFAULT_BADGES;
         let currentNotifications = userData.notifications || [];
         let needsUpdate = false;
@@ -90,8 +88,8 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
         if (currentNotifications.length === 0) {
           currentNotifications = [{
             id: Date.now(),
-            title: "¡Bienvenido a GrowthLab! 🚀",
-            message: "Estamos felices de tenerte. Aquí podrás conectar con mentores y seguir tu crecimiento profesional.",
+            title: "¡Bienvenido de nuevo! 🚀",
+            message: "Tu perfil ha sido sincronizado correctamente.",
             type: 'info',
             date: new Date(),
             read: false,
@@ -125,13 +123,11 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
           }))
         });
       } else {
-        // Crear perfil inicial si no existe
-        const todayStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
         const initialBadges = DEFAULT_BADGES.map(b => b.id === 0 ? { ...b, earned: true, date: todayStr } : b);
         const welcomeNote = {
             id: Date.now(),
             title: "¡Bienvenido a GrowthLab! 🚀",
-            message: "Estamos felices de tenerte.",
+            message: "Estamos felices de tenerte. Explora tus cursos y conecta con mentores.",
             type: 'info',
             date: new Date(),
             read: false,
@@ -179,14 +175,23 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
         const result = await signInWithPopup(auth, googleProvider);
         if (result.user) await syncUserProfile(result.user);
       }
-    } catch (error) {
-      console.error("Error al iniciar sesión con Google", error);
+    } catch (error: any) {
+      console.error("Error al iniciar sesión con Google:", error);
+      if (error.code === 'auth/popup-blocked') {
+        alert("El navegador bloqueó la ventana de inicio de sesión. Por favor, permite los popups para este sitio o intenta de nuevo.");
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // El usuario cerró el popup, no hacer nada
+      } else {
+        alert("Ocurrió un error al intentar iniciar sesión: " + error.message);
+      }
+      isProcessingAuth.current = false;
     }
   };
 
   const logout = async () => {
     try {
       await signOut(auth);
+      // Opcional: Limpiar estado global de Zustand si es necesario
     } catch (error) {
       console.error("Error al cerrar sesión", error);
     }
