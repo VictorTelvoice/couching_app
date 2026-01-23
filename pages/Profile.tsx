@@ -28,18 +28,19 @@ const ProfilePage: React.FC = () => {
         }
     };
 
+    // Fallbacks críticos para asegurar que la UI nunca muestre guiones vacíos
     const displayProfile = {
-        name: user?.displayName || storeProfile.name,
-        role: user ? storeProfile.role : "Invitado",
-        email: user?.email || storeProfile.email,
-        phone: storeProfile.phone,
-        linkedin: storeProfile.linkedin,
-        bio: storeProfile.bio,
-        avatar: user?.photoURL || storeProfile.avatar,
-        level: storeProfile.level,
-        levelName: storeProfile.levelName,
-        xp: storeProfile.xp,
-        nextLevelXp: storeProfile.nextLevelXp
+        name: user?.displayName || storeProfile.name || "Usuario",
+        role: user ? (storeProfile.role || "Miembro") : "Invitado",
+        email: user?.email || storeProfile.email || "",
+        phone: storeProfile.phone || "",
+        linkedin: storeProfile.linkedin || "",
+        bio: storeProfile.bio || "",
+        avatar: user?.photoURL || storeProfile.avatar || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
+        level: storeProfile.level || 1,
+        levelName: storeProfile.levelName || "Pionero",
+        xp: storeProfile.xp || 0,
+        nextLevelXp: storeProfile.nextLevelXp || 500
     };
 
     const progressPercent = Math.min(100, Math.max(0, (displayProfile.xp / displayProfile.nextLevelXp) * 100));
