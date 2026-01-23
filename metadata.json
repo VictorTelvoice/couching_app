@@ -1,5 +1,8 @@
 {
-  "name": "Employee Learning Hub",
-  "description": "A comprehensive mobile-first employee learning dashboard featuring course tracking, coaching events, community engagement, and gamified profiling.",
-  "requestFramePermissions": []
+  "name": "Couchfy",
+  "description": "Plataforma de coaching y aprendizaje corporativo de alto impacto.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
 }

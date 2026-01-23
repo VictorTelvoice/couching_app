@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
@@ -6,25 +7,17 @@ import { useAuth } from '../context/AuthContext';
 
 const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
-    
-    // Auth Context
     const { user, loading, signInWithGoogle, logout } = useAuth();
-
-    // Global Store
     const { profile: storeProfile, skills, badges } = useUserStore();
     
-    // Local UI State
     const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
-    const [showShareToast, setShowShareToast] = useState(false);
     const [badgeFilter, setBadgeFilter] = useState<'all' | 'earned' | 'locked'>('all');
-    const [animatedProgress, setAnimatedProgress] = useState(0);
 
     const handleLogin = async () => {
         await signInWithGoogle();
-        navigate('/'); // Redirect immediately to Home
+        navigate('/');
     };
 
-    // Use Auth data if logged in, otherwise fallback or empty
     const displayProfile = {
         name: user?.displayName || storeProfile.name,
         role: user ? storeProfile.role : "Invitado",
@@ -39,41 +32,13 @@ const ProfilePage: React.FC = () => {
         nextLevelXp: storeProfile.nextLevelXp
     };
 
-    // Calculate level progress
     const progressPercent = Math.min(100, Math.max(0, (displayProfile.xp / displayProfile.nextLevelXp) * 100));
-
-    // Determine "Next Badge"
-    const nextBadge = badges.find(b => !b.earned) || badges[0];
-    const nextBadgeProgress = nextBadge?.progress || 0;
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setAnimatedProgress(nextBadgeProgress);
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [nextBadgeProgress]);
 
     const filteredBadges = badges.filter(b => {
         if (badgeFilter === 'earned') return b.earned;
         if (badgeFilter === 'locked') return !b.earned;
         return true;
     });
-
-    const handleShareSkills = () => {
-        setShowShareToast(true);
-        setTimeout(() => setShowShareToast(false), 3000);
-    };
-
-    const getSkillMetadata = (skillName: string) => {
-        const db: Record<string, { desc: string, courses: string[] }> = {
-            "Liderazgo": { desc: "Capacidad de guiar y motivar equipos.", courses: ["Liderazgo Ágil"] },
-            "Comunicación": { desc: "Transmisión clara de ideas.", courses: ["Storytelling"] },
-        };
-        return db[skillName] || {
-            desc: "Habilidad clave identificada para tu desarrollo profesional.",
-            courses: ["Fundamentos de " + skillName]
-        };
-    };
 
     if (loading) {
         return (
@@ -83,12 +48,12 @@ const ProfilePage: React.FC = () => {
         );
     }
 
-     return (
-         <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark shadow-xl overflow-hidden pb-24">
+    return (
+        <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark shadow-xl overflow-hidden pb-24">
             <header className="flex items-center justify-between px-6 py-5 sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
                 <h1 className="text-slate-900 dark:text-white text-xl font-extrabold leading-tight">Mi Perfil</h1>
                 <div className="flex items-center gap-2">
-                     <button onClick={() => navigate('/notifications')} className="flex items-center justify-center rounded-full size-10 text-[#111318] dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                    <button onClick={() => navigate('/notifications')} className="flex items-center justify-center rounded-full size-10 text-[#111318] dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                         <span className="material-symbols-outlined">notifications</span>
                     </button>
                     <button onClick={() => navigate('/settings')} className="flex items-center justify-center size-10 rounded-full bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 shadow-sm hover:text-primary transition-colors">
@@ -100,22 +65,32 @@ const ProfilePage: React.FC = () => {
             <main className="flex-1 flex flex-col px-4 gap-6 overflow-y-auto hide-scrollbar">
                 
                 {!user ? (
-                     <div className="flex flex-col items-center justify-center pt-10 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2rem] shadow-sm animate-fadeIn">
-                        <div className="size-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
-                            <span className="material-symbols-outlined text-[48px] text-gray-400">person_off</span>
+                    <div className="flex flex-col items-center justify-center pt-10 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 animate-fadeIn">
+                        {/* COUCHFY LOGO PLACEHOLDER */}
+                        <div className="size-32 bg-primary/5 rounded-3xl flex items-center justify-center mb-8 p-4">
+                            <img 
+                                src="https://i.ibb.co/ZzV3GmT/couchfy-logo.png" 
+                                alt="Couchfy Logo" 
+                                className="w-full h-auto object-contain drop-shadow-sm"
+                                onError={(e) => {
+                                    // Fallback to text if image not found
+                                    (e.target as any).src = "https://www.svgrepo.com/show/532397/heart-handshake.svg";
+                                }}
+                            />
                         </div>
-                        <h2 className="text-slate-900 dark:text-white text-2xl font-bold mb-2 text-center">Bienvenido</h2>
-                        <p className="text-slate-500 dark:text-gray-400 text-center text-sm mb-8 px-4">
-                            Inicia sesión para guardar tu progreso, obtener insignias y acceder a tus certificados.
+                        <h2 className="text-slate-900 dark:text-white text-3xl font-extrabold mb-2 text-center tracking-tight">Couchfy</h2>
+                        <p className="text-slate-500 dark:text-gray-400 text-center text-sm mb-10 px-6 font-medium leading-relaxed">
+                            Potencia tu crecimiento profesional con mentorías de expertos y rutas guiadas.
                         </p>
                         <button 
                             onClick={handleLogin}
-                            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-95"
+                            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4.5 px-6 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
                         >
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6 bg-white rounded-full p-0.5" alt="G" />
-                            Ingresar con Google
+                            Acceder con Google
                         </button>
-                     </div>
+                        <p className="mt-8 text-[11px] text-slate-400 text-center uppercase tracking-widest font-bold">Inicia sesión para comenzar</p>
+                    </div>
                 ) : (
                     <div className="relative flex flex-col items-center pt-6 pb-6 px-6 bg-white dark:bg-[#1e293b] rounded-[2rem] shadow-sm animate-fadeIn">
                         <button 
@@ -172,22 +147,16 @@ const ProfilePage: React.FC = () => {
                                 </div>
                                 <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{displayProfile.email}</span>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <div className="size-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600">
-                                     <span className="material-symbols-outlined text-[16px]">call</span>
-                                </div>
-                                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{displayProfile.phone || "Sin teléfono"}</span>
-                            </div>
                              <div className="flex items-center gap-3">
                                 <div className="size-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[#0077b5]">
                                      <span className="material-symbols-outlined text-[16px]">link</span>
                                 </div>
-                                <span className="text-xs font-medium text-[#0077b5] hover:underline cursor-pointer">{displayProfile.linkedin || "Sin LinkedIn"}</span>
+                                <span className="text-xs font-medium text-[#0077b5] hover:underline cursor-pointer">{displayProfile.linkedin || "LinkedIn no vinculado"}</span>
                             </div>
                         </div>
                     </div>
 
-                     <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between px-2">
                             <h3 className="text-slate-900 dark:text-white text-lg font-bold">Insignias y Logros</h3>
                             <button onClick={() => navigate('/badges')} className="text-primary text-sm font-bold hover:underline">Ver todo</button>
@@ -222,7 +191,6 @@ const ProfilePage: React.FC = () => {
             </main>
             <MainNavigation />
 
-            {/* Badge Detail Modal */}
             {selectedBadge && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-[#1e293b] w-full max-w-sm rounded-[2rem] p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 flex flex-col items-center text-center">
@@ -239,7 +207,7 @@ const ProfilePage: React.FC = () => {
                         <p className="text-sm text-slate-500 dark:text-gray-400 mb-6 px-2">{selectedBadge.desc}</p>
                         <button className="mt-6 text-sm font-bold text-primary hover:underline flex items-center gap-1">
                             <span className="material-symbols-outlined text-[18px]">share</span>
-                            Compartir Logro
+                            Compartir en Couchfy
                         </button>
                     </div>
                 </div>
