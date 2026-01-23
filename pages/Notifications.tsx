@@ -62,7 +62,8 @@ const NotificationsPage: React.FC = () => {
             case 'alert': return { icon: 'schedule', color: 'text-primary', bg: 'bg-blue-50 dark:bg-blue-900/30' };
             case 'success': return { icon: 'check_circle', color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/30' };
             case 'message': return { icon: 'forum', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/30' };
-            default: return { icon: 'info', color: 'text-gray-600', bg: 'bg-gray-100 dark:bg-gray-800' };
+            case 'info': return { icon: 'school', color: 'text-primary', bg: 'bg-blue-50 dark:bg-blue-900/30' };
+            default: return { icon: 'notifications', color: 'text-gray-600', bg: 'bg-gray-100 dark:bg-gray-800' };
         }
     };
 

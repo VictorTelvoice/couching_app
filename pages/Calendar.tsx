@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
+import { useUserStore } from '../store/useUserStore';
 
 // Mock Data for Mentors (Simulating DB)
 const MENTORS_DB: Record<number, any> = {
@@ -31,7 +32,6 @@ const MENTORS_DB: Record<number, any> = {
     }
 };
 
-// Mock Available Time Slots grouped by session (Morning/Afternoon)
 const TIME_SLOTS = [
     { time: "09:00 AM", period: "morning" },
     { time: "10:00 AM", period: "morning" },
@@ -44,12 +44,11 @@ const TIME_SLOTS = [
 const CalendarPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { showToast } = useUserStore();
     
-    // Get Mentor ID from navigation state or default to 1
     const mentorId = location.state?.mentorId || 1;
     const mentor = MENTORS_DB[mentorId] || MENTORS_DB[1];
     
-    // State
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -59,7 +58,6 @@ const CalendarPage: React.FC = () => {
     
     const pickerRef = useRef<HTMLDivElement>(null);
 
-    // Close picker when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
@@ -70,9 +68,8 @@ const CalendarPage: React.FC = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Calendar Logic
     const daysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-    const firstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay(); // 0 = Sunday
+    const firstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay(); 
 
     const monthData = useMemo(() => {
         const year = currentDate.getFullYear();
@@ -81,27 +78,21 @@ const CalendarPage: React.FC = () => {
         const startDay = firstDayOfMonth(currentDate); 
         
         const days = [];
-        
-        // Empty slots for previous month padding
         for (let i = 0; i < startDay; i++) {
             days.push({ day: null, fullDate: null });
         }
-        
-        // Actual days
         for (let i = 1; i <= daysCount; i++) {
             days.push({ 
                 day: i, 
                 fullDate: new Date(year, month, i) 
             });
         }
-
         return days;
     }, [currentDate]);
 
-    // Generate next 12 months for the dropdown
     const availableMonths = useMemo(() => {
         const months = [];
-        const start = new Date(); // Start from today
+        const start = new Date(); 
         for(let i = 0; i < 12; i++) {
             const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
             months.push(d);
@@ -145,17 +136,17 @@ const CalendarPage: React.FC = () => {
 
     const handleDateClick = (date: Date) => {
         setSelectedDate(date);
-        setSelectedTime(null); // Reset time when date changes
+        setSelectedTime(null); 
     };
 
     const handleConfirmBooking = () => {
         if (!selectedTime || !selectedDate || !mentor) return;
         
         setIsBooking(true);
-        // Simulate API call
         setTimeout(() => {
             setIsBooking(false);
             setBookingSuccess(true);
+            showToast(`Sesión agendada con ${mentor.name}`, 'success');
         }, 1500);
     };
 
@@ -225,7 +216,6 @@ const CalendarPage: React.FC = () => {
                         <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                     </button>
                     
-                    {/* Dropdown Trigger */}
                     <button 
                         onClick={() => setIsMonthPickerOpen(!isMonthPickerOpen)}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white dark:hover:bg-white/5 transition-colors group"
@@ -236,7 +226,6 @@ const CalendarPage: React.FC = () => {
                         <span className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${isMonthPickerOpen ? 'rotate-180' : ''}`}>arrow_drop_down</span>
                     </button>
 
-                    {/* Dropdown Menu */}
                     {isMonthPickerOpen && (
                         <div className="absolute top-12 left-1/2 -translate-x-1/2 w-64 bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-30 overflow-hidden animate-in zoom-in-95 duration-200">
                             <div className="max-h-60 overflow-y-auto hide-scrollbar p-2">
@@ -267,7 +256,6 @@ const CalendarPage: React.FC = () => {
 
                 {/* Calendar Grid */}
                 <div className="bg-white dark:bg-surface-dark rounded-[1.5rem] p-5 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
-                    {/* Weekdays */}
                     <div className="grid grid-cols-7 mb-3">
                         {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'].map((day, i) => (
                             <div key={i} className="text-center text-[11px] font-bold text-gray-400 uppercase tracking-wide">
@@ -276,7 +264,6 @@ const CalendarPage: React.FC = () => {
                         ))}
                     </div>
                     
-                    {/* Days */}
                     <div className="grid grid-cols-7 gap-y-1">
                         {monthData.map((item, index) => {
                             if (!item.fullDate) return <div key={index}></div>;

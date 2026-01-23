@@ -1,18 +1,19 @@
+
 <!DOCTYPE html>
 <html lang="es" class="light">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
     <title>GrowthLab</title>
     
-    <!-- Iconos y Manifest con rutas absolutas -->
-    <link rel="icon" type="image/svg+xml" href="/logo.svg">
-    <link rel="apple-touch-icon" href="/logo.svg">
-    <link rel="manifest" href="/manifest.json">
+    <!-- Iconos y Manifest -->
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="apple-touch-icon" href="logo.svg">
+    <link rel="manifest" href="manifest.json">
     
-    <!-- Metadatos para App en Inicio -->
+    <!-- Metadatos para App en Inicio (iOS y Android) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GrowthLab">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1152d4">
@@ -62,10 +63,15 @@
                         shimmer: {
                             '0%': { transform: 'translateX(-150%)' },
                             '100%': { transform: 'translateX(150%)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
                         }
                     },
                     animation: {
-                        shimmer: 'shimmer 2.5s infinite linear',
+                        shimmer: 'shimmer 3s infinite linear',
+                        fadeIn: 'fadeIn 0.5s ease-out forwards',
                     }
                 },
             },
@@ -74,6 +80,7 @@
     <style>
         body {
             min-height: max(884px, 100dvh);
+            -webkit-tap-highlight-color: transparent;
         }
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
@@ -117,7 +124,10 @@
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
     "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3"
+    "react": "https://esm.sh/react@^19.2.3",
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "jspdf": "https://esm.sh/jspdf@^2.5.1"
   }
 }
 </script>
