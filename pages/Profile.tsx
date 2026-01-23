@@ -4,7 +4,7 @@ import MainNavigation from '../components/Navigation';
 import { useUserStore, Badge } from '../store/useUserStore';
 import { useAuth } from '../context/AuthContext';
 
-// Logotipo vectorial integrado: Sombrero de estudiante (birrete) en azul primario
+// Logotipo vectorial integrado
 const GrowthLabLogo = ({ className = "size-16" }: { className?: string }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" className="fill-primary" />
@@ -17,7 +17,6 @@ const ProfilePage: React.FC = () => {
     const { profile: storeProfile, badges } = useUserStore();
     
     const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
-    const [badgeFilter, setBadgeFilter] = useState<'all' | 'earned' | 'locked'>('all');
 
     const handleLogin = async () => {
         try {
@@ -28,28 +27,38 @@ const ProfilePage: React.FC = () => {
         }
     };
 
-    // Fallbacks críticos para asegurar que la UI nunca muestre guiones vacíos
     const displayProfile = {
         name: user?.displayName || storeProfile.name || "Usuario",
         role: user ? (storeProfile.role || "Miembro") : "Invitado",
         email: user?.email || storeProfile.email || "",
-        phone: storeProfile.phone || "",
-        linkedin: storeProfile.linkedin || "",
-        bio: storeProfile.bio || "",
         avatar: user?.photoURL || storeProfile.avatar || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
         level: storeProfile.level || 1,
         levelName: storeProfile.levelName || "Pionero",
         xp: storeProfile.xp || 0,
-        nextLevelXp: storeProfile.nextLevelXp || 500
+        nextLevelXp: storeProfile.nextLevelXp || 500,
+        bio: storeProfile.bio || "",
+        linkedin: storeProfile.linkedin || ""
     };
 
     const progressPercent = Math.min(100, Math.max(0, (displayProfile.xp / displayProfile.nextLevelXp) * 100));
 
-    const filteredBadges = badges.filter(b => {
-        if (badgeFilter === 'earned') return b.earned;
-        if (badgeFilter === 'locked') return !b.earned;
-        return true;
-    });
+    // Función para obtener colores vivos basados en la definición de la insignia
+    const getBadgeLiveColors = (badge: Badge) => {
+        if (!badge.earned) return {};
+        const colorMap: Record<string, string> = {
+            'text-blue-500': '#3b82f6',
+            'text-accent-orange': '#f97316',
+            'text-emerald-500': '#10b981',
+            'text-primary': '#1152d4',
+            'text-purple-500': '#a855f7',
+            'text-pink-500': '#ec4899'
+        };
+        const hex = colorMap[badge.color] || '#6366f1';
+        return {
+            borderBottom: `4px solid ${hex}`,
+            boxShadow: `0 10px 15px -3px ${hex}20`
+        };
+    };
 
     if (loading) {
         return (
@@ -74,7 +83,6 @@ const ProfilePage: React.FC = () => {
             </header>
 
             <main className="flex-1 flex flex-col px-4 gap-6 overflow-y-auto hide-scrollbar pt-4">
-                
                 {!user ? (
                     <div className="flex flex-col items-center justify-center pt-10 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 animate-fadeIn">
                         <div className="size-24 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-8 shadow-md border border-gray-50 dark:border-gray-700">
@@ -133,7 +141,7 @@ const ProfilePage: React.FC = () => {
                 )}
 
                 <div className={`flex flex-col gap-6 ${!user ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
-                    {/* About Section */}
+                    {/* Sección Sobre Mí */}
                     <div className="bg-white dark:bg-[#1e293b] rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-4">
                         <div>
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2 uppercase tracking-wider opacity-60">Sobre mí</h3>
@@ -158,7 +166,7 @@ const ProfilePage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Enhanced Badges Section */}
+                    {/* Sección Insignias Mejorada */}
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between px-2">
                             <h3 className="text-slate-900 dark:text-white text-lg font-bold">Insignias y Logros</h3>
@@ -166,49 +174,46 @@ const ProfilePage: React.FC = () => {
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
-                            {filteredBadges.slice(0, 6).map((badge) => (
+                            {badges.slice(0, 4).map((badge) => (
                                 <div 
                                     key={badge.id} 
                                     onClick={() => setSelectedBadge(badge)}
                                     className={`
-                                        flex flex-col p-4 rounded-3xl transition-all cursor-pointer relative overflow-hidden h-36
+                                        flex flex-col p-4 rounded-3xl transition-all cursor-pointer relative overflow-hidden h-40
                                         ${!badge.earned 
-                                            ? 'bg-slate-50 dark:bg-[#1e293b]/50 border-2 border-dashed border-slate-200 dark:border-slate-700 grayscale-[0.8]' 
-                                            : 'bg-white dark:bg-[#1e293b] border-2 border-transparent shadow-md hover:-translate-y-1.5 hover:shadow-xl ring-1 ring-slate-100 dark:ring-slate-800'
+                                            ? 'bg-slate-50 dark:bg-[#1e293b]/50 border-2 border-dashed border-slate-200 dark:border-slate-700' 
+                                            : 'bg-white dark:bg-[#1e293b] border-2 border-transparent shadow-lg hover:-translate-y-1.5 hover:shadow-xl ring-1 ring-slate-100 dark:ring-slate-800'
                                         }
                                     `}
-                                    style={badge.earned ? { 
-                                        borderBottom: `4px solid ${badge.color.includes('blue') ? '#3b82f6' : badge.color.includes('orange') ? '#f97316' : badge.color.includes('emerald') ? '#10b981' : '#6366f1'}` 
-                                    } : {}}
+                                    style={getBadgeLiveColors(badge)}
                                 >
-                                    {/* Shimmer Effect for Earned Badges */}
+                                    {/* Efecto de Brillo (Shimmer) para insignias ganadas */}
                                     {badge.earned && (
-                                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 dark:via-white/5 to-transparent z-0 pointer-events-none skew-x-12"></div>
+                                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/50 dark:via-white/10 to-transparent z-0 pointer-events-none skew-x-12"></div>
                                     )}
 
                                     <div className="flex justify-between items-start mb-auto relative z-10">
                                         <div className={`
-                                            size-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6
-                                            ${badge.earned ? `${badge.bg} ${badge.color} shadow-lg shadow-black/5` : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}
+                                            size-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-inner
+                                            ${badge.earned ? `${badge.bg} ${badge.color}` : 'bg-slate-100 dark:bg-slate-800 text-slate-300'}
                                         `}>
                                             <span className={`material-symbols-outlined ${badge.earned ? 'material-symbols-filled' : ''}`} style={{fontSize: '32px'}}>{badge.icon}</span>
                                         </div>
                                         {badge.earned && (
-                                            <div className="size-6 bg-green-500 text-white rounded-full flex items-center justify-center shadow-sm">
+                                            <div className="size-6 bg-green-500 text-white rounded-full flex items-center justify-center shadow-md animate-in zoom-in-50 duration-500">
                                                 <span className="material-symbols-filled" style={{fontSize: '14px'}}>check</span>
                                             </div>
                                         )}
                                     </div>
                                     
-                                    <div className="mt-2 relative z-10">
-                                        <h4 className={`text-xs ${!badge.earned ? 'font-bold text-slate-400' : 'font-extrabold text-slate-800 dark:text-slate-100'} leading-tight line-clamp-2`}>
+                                    <div className="mt-3 relative z-10">
+                                        <h4 className={`text-[13px] ${!badge.earned ? 'font-bold text-slate-400 opacity-60' : 'font-extrabold text-slate-800 dark:text-slate-100'} leading-tight line-clamp-1`}>
                                             {badge.name}
                                         </h4>
-                                        {badge.earned && badge.date && (
-                                            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Ganada el {badge.date}</p>
-                                        )}
-                                        {!badge.earned && (
-                                             <p className="text-[9px] font-bold text-slate-300 dark:text-slate-600 mt-1 uppercase tracking-tighter">Bloqueada</p>
+                                        {badge.earned ? (
+                                            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Desbloqueado</p>
+                                        ) : (
+                                             <p className="text-[9px] font-bold text-slate-300 dark:text-slate-600 mt-1 uppercase tracking-tighter italic">Por conseguir</p>
                                         )}
                                     </div>
                                 </div>
@@ -219,25 +224,26 @@ const ProfilePage: React.FC = () => {
             </main>
             <MainNavigation />
 
+            {/* Modal de Detalle de Insignia */}
             {selectedBadge && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-[#1e293b] w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl relative animate-in zoom-in-95 duration-200 flex flex-col items-center text-center border border-white/20">
                         <button 
                             onClick={() => setSelectedBadge(null)} 
-                            className="absolute top-6 right-6 size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-sm"
+                            className="absolute top-6 right-6 size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                         >
                             <span className="material-symbols-outlined" style={{fontSize: '20px'}}>close</span>
                         </button>
                         
                         <div className="relative mb-6">
-                            <div className={`absolute inset-0 ${selectedBadge.earned ? selectedBadge.bg : 'bg-slate-200'} rounded-full blur-2xl opacity-40 animate-pulse`}></div>
-                            <div className={`size-28 rounded-[2rem] ${selectedBadge.bg} ${selectedBadge.color} flex items-center justify-center shadow-2xl relative z-10 border-4 border-white dark:border-slate-800 transition-transform hover:scale-105 duration-300`}>
+                            <div className={`absolute inset-0 ${selectedBadge.earned ? selectedBadge.bg : 'bg-slate-200'} rounded-full blur-3xl opacity-50 animate-pulse`}></div>
+                            <div className={`size-28 rounded-[2.5rem] ${selectedBadge.bg} ${selectedBadge.color} flex items-center justify-center shadow-2xl relative z-10 border-4 border-white dark:border-slate-800 transition-transform hover:scale-105 duration-300`}>
                                 <span className={`material-symbols-outlined ${selectedBadge.earned ? 'material-symbols-filled' : ''}`} style={{fontSize: '56px'}}>{selectedBadge.icon}</span>
                             </div>
                         </div>
 
-                        <span className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${selectedBadge.earned ? 'text-primary' : 'text-slate-400'}`}>
-                            {selectedBadge.earned ? 'Logro Desbloqueado' : 'Requisito de Logro'}
+                        <span className={`text-[11px] font-bold uppercase tracking-widest mb-2 ${selectedBadge.earned ? 'text-primary' : 'text-slate-400'}`}>
+                            {selectedBadge.earned ? 'Logro Coleccionado' : 'Requisito de Logro'}
                         </span>
                         <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2 leading-tight">{selectedBadge.name}</h3>
                         <p className="text-sm text-slate-500 dark:text-gray-400 mb-8 px-4 leading-relaxed font-medium">{selectedBadge.desc}</p>
@@ -245,14 +251,14 @@ const ProfilePage: React.FC = () => {
                         {selectedBadge.earned ? (
                             <button className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-95">
                                 <span className="material-symbols-outlined text-[20px]">share</span>
-                                Compartir en LinkedIn
+                                Compartir Logro
                             </button>
                         ) : (
                              <button 
                                 onClick={() => { setSelectedBadge(null); navigate('/explore'); }}
                                 className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all active:scale-95"
                             >
-                                ¿Cómo obtenerla?
+                                Ver guía para obtenerla
                             </button>
                         )}
                     </div>
