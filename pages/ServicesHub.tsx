@@ -1,37 +1,27 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
 import { useUserStore } from '../store/useUserStore';
 
-// Added React import to resolve namespace error on line 6
 const ServicesHubPage: React.FC = () => {
     const navigate = useNavigate();
-    const { badges, mySessions, savedContent } = useUserStore();
+    const { badges, mySessions } = useUserStore();
     const [activeTab, setActiveTab] = useState<'mentorships' | 'certificates'>('certificates');
-    const [showDetails, setShowDetails] = useState(false);
 
     const subscription = {
         plan: "Plan Profesional",
         status: "Activo",
         renewal: "Renueva el 12 Nov, 2024",
-        price: "$29.99/mes",
-        cardLast4: "4242",
-        cardBrand: "Visa",
-        memberSince: "20 Ene, 2023",
-        nextBilling: "$29.99"
+        nextBilling: "$29.99",
+        cardLast4: "4242"
     };
 
     const stats = {
-        sessionsCompleted: mySessions.filter(s => s.progress === 100).length,
         sessionsTotal: mySessions.length,
-        certsEarned: mySessions.filter(s => s.progress === 100).length, // Simplified logic
+        certsEarned: mySessions.filter(s => s.progress === 100).length,
         badgesEarned: badges.filter(b => b.earned).length
     };
-
-    const billingOptions = [
-        { icon: 'credit_card', title: 'Métodos de Pago', subtitle: `Visa terminada en ${subscription.cardLast4}` },
-        { icon: 'receipt_long', title: 'Historial de Facturación', subtitle: 'Ver facturas y recibos' },
-    ];
 
     return (
         <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark shadow-xl overflow-hidden pb-24">
@@ -66,63 +56,56 @@ const ServicesHubPage: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                    <div onClick={() => setActiveTab('mentorships')} className={`flex flex-col items-center p-3 rounded-2xl border cursor-pointer ${activeTab === 'mentorships' ? 'bg-indigo-50 border-indigo-500' : 'bg-white border-gray-100'}`}>
+                    <div onClick={() => setActiveTab('mentorships')} className={`flex flex-col items-center p-3 rounded-2xl border cursor-pointer transition-colors ${activeTab === 'mentorships' ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800'}`}>
                         <span className="material-symbols-filled text-indigo-600 mb-1">play_circle</span>
-                        <span className="text-xl font-extrabold text-slate-900 leading-none">{stats.sessionsTotal}</span>
-                        <span className="text-[9px] font-bold text-gray-500 uppercase">Mentorías</span>
+                        <span className="text-xl font-extrabold text-slate-900 dark:text-white leading-none">{stats.sessionsTotal}</span>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase">Mentorías</span>
                     </div>
-                    <div onClick={() => setActiveTab('certificates')} className={`flex flex-col items-center p-3 rounded-2xl border cursor-pointer ${activeTab === 'certificates' ? 'bg-blue-50 border-primary' : 'bg-white border-gray-100'}`}>
+                    <div onClick={() => setActiveTab('certificates')} className={`flex flex-col items-center p-3 rounded-2xl border cursor-pointer transition-colors ${activeTab === 'certificates' ? 'bg-blue-50 dark:bg-blue-900/20 border-primary' : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800'}`}>
                         <span className="material-symbols-filled text-primary mb-1">workspace_premium</span>
-                        <span className="text-xl font-extrabold text-slate-900 leading-none">{stats.certsEarned}</span>
-                        <span className="text-[9px] font-bold text-gray-500 uppercase">Certificados</span>
+                        <span className="text-xl font-extrabold text-slate-900 dark:text-white leading-none">{stats.certsEarned}</span>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase">Certificados</span>
                     </div>
-                    <div onClick={() => navigate('/badges')} className="flex flex-col items-center p-3 rounded-2xl bg-white border border-gray-100">
+                    <div onClick={() => navigate('/badges')} className="flex flex-col items-center p-3 rounded-2xl bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-800">
                         <span className="material-symbols-filled text-purple-600 mb-1">military_tech</span>
-                        <span className="text-xl font-extrabold text-slate-900 leading-none">{stats.badgesEarned}</span>
-                        <span className="text-[9px] font-bold text-gray-500 uppercase">Insignias</span>
+                        <span className="text-xl font-extrabold text-slate-900 dark:text-white leading-none">{stats.badgesEarned}</span>
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase">Insignias</span>
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-4 pb-4">
-                    <h3 className="text-sm font-bold text-slate-900 px-1">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white px-1">
                         {activeTab === 'mentorships' ? 'Mis Mentorías' : 'Mis Certificados'}
                     </h3>
 
-                    {activeTab === 'mentorships' && (
-                        <div className="flex flex-col gap-3">
-                            {mySessions.map(session => (
-                                <div key={session.id} className="flex gap-3 p-3 rounded-2xl border bg-white border-gray-100 shadow-sm">
+                    <div className="flex flex-col gap-3">
+                        {activeTab === 'mentorships' ? (
+                             mySessions.map(session => (
+                                <div key={session.id} className="flex gap-3 p-3 rounded-2xl border bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-800 shadow-sm">
                                     <div className="w-16 h-16 rounded-xl bg-gray-200 shrink-0 bg-cover bg-center" style={{backgroundImage: `url("${session.image}")`}}></div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-sm font-bold truncate">{session.title}</h4>
+                                        <h4 className="text-sm font-bold truncate text-slate-900 dark:text-white">{session.title}</h4>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
+                                            <div className="flex-1 h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                                                 <div className="h-full bg-primary" style={{width: `${session.progress}%`}}></div>
                                             </div>
                                             <span className="text-[10px] font-bold text-primary">{session.progress}%</span>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                            {mySessions.length === 0 && (
-                                <p className="text-xs text-gray-400 text-center py-6">No tienes mentorías activas aún.</p>
-                            )}
-                        </div>
-                    )}
-
-                    {activeTab === 'certificates' && (
-                        <div className="flex flex-col gap-3">
-                            {mySessions.filter(s => s.progress === 100).map(cert => (
-                                <div key={cert.id} className="flex gap-3 p-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                            ))
+                        ) : (
+                            mySessions.filter(s => s.progress === 100).map(cert => (
+                                <div key={cert.id} className="flex gap-3 p-3 bg-white dark:bg-surface-dark rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm items-center">
                                     <span className="material-symbols-filled text-primary">verified</span>
-                                    <h4 className="text-xs font-bold">{cert.title}</h4>
+                                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">{cert.title}</h4>
                                 </div>
-                            ))}
-                            {mySessions.filter(s => s.progress === 100).length === 0 && (
-                                <p className="text-xs text-gray-400 text-center py-6">Completa mentorías para obtener certificados.</p>
-                            )}
-                        </div>
-                    )}
+                            ))
+                        )}
+                        {(activeTab === 'mentorships' ? mySessions : mySessions.filter(s => s.progress === 100)).length === 0 && (
+                            <p className="text-xs text-gray-400 text-center py-6">No hay datos disponibles en esta sección.</p>
+                        )}
+                    </div>
                 </div>
             </main>
             <MainNavigation />

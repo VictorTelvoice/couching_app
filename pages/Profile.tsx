@@ -8,14 +8,18 @@ import { useAuth } from '../context/AuthContext';
 const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
     const { user, loading, signInWithGoogle, logout } = useAuth();
-    const { profile: storeProfile, skills, badges } = useUserStore();
+    const { profile: storeProfile, badges } = useUserStore();
     
     const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
     const [badgeFilter, setBadgeFilter] = useState<'all' | 'earned' | 'locked'>('all');
 
     const handleLogin = async () => {
-        await signInWithGoogle();
-        navigate('/');
+        try {
+            await signInWithGoogle();
+            navigate('/');
+        } catch (error) {
+            console.error("Error en login:", error);
+        }
     };
 
     const displayProfile = {
@@ -66,14 +70,12 @@ const ProfilePage: React.FC = () => {
                 
                 {!user ? (
                     <div className="flex flex-col items-center justify-center pt-10 pb-12 px-6 bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 animate-fadeIn">
-                        {/* COUCHFY LOGO PLACEHOLDER */}
-                        <div className="size-32 bg-primary/5 rounded-3xl flex items-center justify-center mb-8 p-4">
+                        <div className="size-32 bg-primary/5 rounded-3xl flex items-center justify-center mb-8 p-4 overflow-hidden">
                             <img 
                                 src="https://i.ibb.co/ZzV3GmT/couchfy-logo.png" 
                                 alt="Couchfy Logo" 
                                 className="w-full h-auto object-contain drop-shadow-sm"
                                 onError={(e) => {
-                                    // Fallback to text if image not found
                                     (e.target as any).src = "https://www.svgrepo.com/show/532397/heart-handshake.svg";
                                 }}
                             />
@@ -84,7 +86,7 @@ const ProfilePage: React.FC = () => {
                         </p>
                         <button 
                             onClick={handleLogin}
-                            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4.5 px-6 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+                            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
                         >
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6 bg-white rounded-full p-0.5" alt="G" />
                             Acceder con Google
