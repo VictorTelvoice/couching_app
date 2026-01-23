@@ -1,5 +1,7 @@
 
 import { create } from 'zustand';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 
 export interface Badge {
     id: number;
@@ -22,6 +24,9 @@ export interface Session {
     type: 'recorded' | 'live';
     duration: string;
     image: string;
+    lastLessonId?: number;
+    completedLessons?: number[];
+    updatedAt?: number;
 }
 
 export interface Review {
@@ -71,16 +76,19 @@ interface UserState {
     // Actions
     updateProfile: (data: Partial<UserProfile>) => void;
     setFullData: (data: Partial<UserState> & { triggerCelebration?: Badge | null }) => void;
-    addSkill: (skill: string) => void;
-    removeSkill: (skill: string) => void;
-    unlockBadge: (id: number) => void;
+    addSkill: (skill: string) => Promise<void>;
+    removeSkill: (skill: string) => Promise<void>;
+    unlockBadge: (id: number) => Promise<void>;
     clearCelebration: () => void;
-    toggleSave: (id: number) => void;
-    addReview: (review: Omit<Review, 'id' | 'author' | 'avatar' | 'date'>) => void;
-    addNotification: (note: Omit<Notification, 'id' | 'date' | 'read'>) => void;
-    markNotificationAsRead: (id: number) => void;
-    markAllNotificationsAsRead: () => void;
+    toggleSave: (id: number) => Promise<void>;
+    addReview: (review: Omit<Review, 'id' | 'author' | 'avatar' | 'date'>) => Promise<void>;
+    addNotification: (note: Omit<Notification, 'id' | 'date' | 'read'>) => Promise<void>;
+    markNotificationAsRead: (id: number) => Promise<void>;
+    markAllNotificationsAsRead: () => Promise<void>;
     getUnreadCount: () => number;
+    
+    // New Progress Actions
+    updateSessionProgress: (courseId: number, lessonId: number, totalLessons: number, courseTitle: string, courseImage: string) => Promise<void>;
 }
 
 export const DEFAULT_BADGES: Badge[] = [
@@ -122,14 +130,42 @@ export const useUserStore = create<UserState>((set, get) => ({
         recentBadgeEarned: data.triggerCelebration || state.recentBadgeEarned
     })),
 
-    addSkill: (skill) => set((state) => {
-        if (!skill.trim() || state.skills.includes(skill.trim())) return state;
-        return { skills: [...state.skills, skill.trim()] };
-    }),
-    removeSkill: (skill) => set((state) => ({ skills: state.skills.filter(s => s !== skill) })),
+    addSkill: async (skill) => {
+        const currentSkills = get().skills;
+        const skillTrimmed = skill.trim();
+        if (!skillTrimmed || currentSkills.includes(skillTrimmed)) return;
+
+        const newSkills = [...currentSkills, skillTrimmed];
+        set({ skills: newSkills });
+
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) await updateDoc(doc(db, "users", userId), { skills: newSkills });
+        } catch (err) {
+            set({ skills: currentSkills });
+            alert("Error al guardar la habilidad. Inténtalo de nuevo.");
+        }
+    },
+
+    removeSkill: async (skill) => {
+        const currentSkills = get().skills;
+        const newSkills = currentSkills.filter(s => s !== skill);
+        set({ skills: newSkills });
+
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) await updateDoc(doc(db, "users", userId), { skills: newSkills });
+        } catch (err) {
+            set({ skills: currentSkills });
+            alert("Error al eliminar la habilidad.");
+        }
+    },
     
-    unlockBadge: (id) => set((state) => {
-        const badge = state.badges.find(b => b.id === id);
+    unlockBadge: async (id) => {
+        const currentBadges = get().badges;
+        const currentNotes = get().notifications;
+        const badge = currentBadges.find(b => b.id === id);
+
         if (badge && !badge.earned) {
             const unlockedBadge = { 
                 ...badge, 
@@ -147,53 +183,160 @@ export const useUserStore = create<UserState>((set, get) => ({
                 link: '/badges'
             };
 
-            return {
-                badges: state.badges.map(b => b.id === id ? unlockedBadge : b),
-                notifications: [newNote, ...state.notifications],
-                recentBadgeEarned: unlockedBadge
-            };
+            const updatedBadges = currentBadges.map(b => b.id === id ? unlockedBadge : b);
+            const updatedNotes = [newNote, ...currentNotes];
+
+            set({ badges: updatedBadges, notifications: updatedNotes, recentBadgeEarned: unlockedBadge });
+
+            try {
+                const userId = auth.currentUser?.uid;
+                if (userId) {
+                    await updateDoc(doc(db, "users", userId), { 
+                        badges: updatedBadges,
+                        notifications: updatedNotes 
+                    });
+                }
+            } catch (err) {
+                set({ badges: currentBadges, notifications: currentNotes, recentBadgeEarned: null });
+                alert("Error al procesar el logro.");
+            }
         }
-        return state;
-    }),
+    },
 
     clearCelebration: () => set({ recentBadgeEarned: null }),
 
-    toggleSave: (id) => set((state) => {
-        const isSaved = state.savedContent.includes(id);
-        return {
-            savedContent: isSaved 
-                ? state.savedContent.filter(itemId => itemId !== id)
-                : [...state.savedContent, id]
-        };
-    }),
-    addReview: (reviewData) => set((state) => {
+    toggleSave: async (id) => {
+        const oldSaved = get().savedContent;
+        const isSaved = oldSaved.includes(id);
+        const newSaved = isSaved ? oldSaved.filter(itemId => itemId !== id) : [...oldSaved, id];
+        
+        set({ savedContent: newSaved });
+
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) await updateDoc(doc(db, "users", userId), { savedContent: newSaved });
+        } catch (err) {
+            set({ savedContent: oldSaved });
+            alert("No se pudo actualizar tu lista de guardados.");
+        }
+    },
+
+    addReview: async (reviewData) => {
+        const oldReviews = get().reviews;
         const newReview: Review = {
             id: Date.now(),
             mentorId: reviewData.mentorId,
             rating: reviewData.rating,
             comment: reviewData.comment,
-            author: state.profile.name,
-            avatar: state.profile.avatar,
+            author: get().profile.name,
+            avatar: get().profile.avatar,
             date: "Justo ahora"
         };
-        return { reviews: [newReview, ...state.reviews] };
-    }),
-    addNotification: (noteData) => set((state) => {
+        
+        const updatedReviews = [newReview, ...oldReviews];
+        set({ reviews: updatedReviews });
+
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) await updateDoc(doc(db, "users", userId), { reviews: updatedReviews });
+        } catch (err) {
+            set({ reviews: oldReviews });
+            alert("No se pudo publicar tu reseña.");
+        }
+    },
+
+    addNotification: async (noteData) => {
+        const oldNotes = get().notifications;
         const newNote: Notification = {
             ...noteData,
             id: Date.now(),
             date: new Date(),
             read: false
         };
-        return { notifications: [newNote, ...state.notifications] };
-    }),
-    markNotificationAsRead: (id) => set((state) => ({
-        notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n)
-    })),
-    markAllNotificationsAsRead: () => set((state) => ({
-        notifications: state.notifications.map(n => ({ ...n, read: true }))
-    })),
+        const updatedNotes = [newNote, ...oldNotes];
+        set({ notifications: updatedNotes });
+
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) await updateDoc(doc(db, "users", userId), { notifications: updatedNotes });
+        } catch (err) {
+            set({ notifications: oldNotes });
+        }
+    },
+
+    markNotificationAsRead: async (id) => {
+        const oldNotes = get().notifications;
+        const updatedNotes = oldNotes.map(n => n.id === id ? { ...n, read: true } : n);
+        set({ notifications: updatedNotes });
+
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) await updateDoc(doc(db, "users", userId), { notifications: updatedNotes });
+        } catch (err) {
+            set({ notifications: oldNotes });
+        }
+    },
+
+    markAllNotificationsAsRead: async () => {
+        const oldNotes = get().notifications;
+        const updatedNotes = oldNotes.map(n => ({ ...n, read: true }));
+        set({ notifications: updatedNotes });
+
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) await updateDoc(doc(db, "users", userId), { notifications: updatedNotes });
+        } catch (err) {
+            set({ notifications: oldNotes });
+            alert("Error al marcar notificaciones.");
+        }
+    },
+
     getUnreadCount: () => {
         return get().notifications.filter(n => !n.read).length;
+    },
+
+    updateSessionProgress: async (courseId, lessonId, totalLessons, courseTitle, courseImage) => {
+        const oldSessions = get().mySessions;
+        const existingSession = oldSessions.find(s => s.id === courseId);
+        
+        let completed = existingSession?.completedLessons || [];
+        if (!completed.includes(lessonId)) {
+            completed = [...completed, lessonId];
+        }
+
+        const newProgress = Math.round((completed.length / totalLessons) * 100);
+        let updatedSessions: Session[];
+
+        if (existingSession) {
+            updatedSessions = oldSessions.map(s => s.id === courseId ? {
+                ...s,
+                progress: newProgress,
+                lastLessonId: lessonId,
+                completedLessons: completed,
+                updatedAt: Date.now()
+            } : s);
+        } else {
+            updatedSessions = [...oldSessions, {
+                id: courseId,
+                title: courseTitle,
+                progress: newProgress,
+                type: 'recorded',
+                duration: "2h",
+                image: courseImage,
+                lastLessonId: lessonId,
+                completedLessons: completed,
+                updatedAt: Date.now()
+            }];
+        }
+
+        set({ mySessions: updatedSessions });
+
+        try {
+            const userId = auth.currentUser?.uid;
+            if (userId) await updateDoc(doc(db, "users", userId), { mySessions: updatedSessions });
+        } catch (error) {
+            set({ mySessions: oldSessions });
+            console.error("Error updating progress:", error);
+        }
     }
 }));
