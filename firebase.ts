@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Changed to process.env to fix 'Property env does not exist on type ImportMeta' errors
+// Fix: Use process.env instead of import.meta.env to resolve TypeScript errors and align with environment variable handling
 const firebaseConfig = {
   apiKey: process.env.VITE_API_KEY || "AIzaSyDmE4yvLQFxKnjofSTr29RuStzRkYU_i54",
   authDomain: process.env.VITE_AUTH_DOMAIN || "couching-app-f8eb6.firebaseapp.com",
