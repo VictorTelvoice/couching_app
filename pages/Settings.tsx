@@ -1,9 +1,23 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavigation from '../components/Navigation';
+import { useUserStore } from '../store/useUserStore';
+import { useAuth } from '../context/AuthContext';
 
 const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
+    const { theme, toggleTheme } = useUserStore();
+    const { logout } = useAuth();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/profile');
+        } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+        }
+    };
 
     return (
         <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark shadow-xl overflow-hidden pb-24">
@@ -33,17 +47,19 @@ const SettingsPage: React.FC = () => {
                                 <div className="absolute right-1 top-1 w-5 h-5 bg-white rounded-full shadow-sm"></div>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center justify-between p-4" onClick={toggleTheme}>
                             <div className="flex items-center gap-4">
-                                <div className="size-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 shrink-0">
-                                    <span className="material-symbols-outlined text-[20px]">dark_mode</span>
+                                <div className={`size-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-orange-50 text-orange-400'}`}>
+                                    <span className="material-symbols-outlined text-[20px]">
+                                        {theme === 'dark' ? 'dark_mode' : 'light_mode'}
+                                    </span>
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-900 dark:text-white text-sm">Modo Oscuro</h4>
                                 </div>
                             </div>
-                            <div className="block w-12 h-7 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer relative transition-colors">
-                                <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-sm"></div>
+                            <div className={`block w-12 h-7 rounded-full cursor-pointer relative transition-all duration-300 ${theme === 'dark' ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${theme === 'dark' ? 'left-6' : 'left-1'}`}></div>
                             </div>
                         </div>
                     </div>
@@ -56,7 +72,7 @@ const SettingsPage: React.FC = () => {
                             <span className="text-sm font-semibold text-gray-900 dark:text-white">Editar Perfil</span>
                             <span className="material-symbols-outlined text-gray-400">chevron_right</span>
                         </button>
-                        <button className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left">
+                        <button onClick={handleLogout} className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left">
                             <span className="text-sm font-semibold text-red-500">Cerrar Sesión</span>
                             <span className="material-symbols-outlined text-red-400">logout</span>
                         </button>

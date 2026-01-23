@@ -67,6 +67,7 @@ interface UserState {
     reviews: Review[];
     notifications: Notification[];
     recentBadgeEarned: Badge | null;
+    theme: 'light' | 'dark';
     
     // Actions
     updateProfile: (data: Partial<UserProfile>) => void;
@@ -81,6 +82,7 @@ interface UserState {
     markNotificationAsRead: (id: number) => void;
     markAllNotificationsAsRead: () => void;
     getUnreadCount: () => number;
+    toggleTheme: () => void;
 }
 
 export const DEFAULT_BADGES: Badge[] = [
@@ -113,6 +115,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     reviews: [],
     notifications: [],
     recentBadgeEarned: null,
+    theme: 'light',
 
     updateProfile: (data) => set((state) => ({ profile: { ...state.profile, ...data } })),
     
@@ -195,5 +198,8 @@ export const useUserStore = create<UserState>((set, get) => ({
     })),
     getUnreadCount: () => {
         return get().notifications.filter(n => !n.read).length;
-    }
+    },
+    toggleTheme: () => set((state) => ({
+        theme: state.theme === 'light' ? 'dark' : 'light'
+    })),
 }));

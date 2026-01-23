@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { useUserStore } from './store/useUserStore';
 import HomePage from './pages/Home';
 import CoachingPage from './pages/Coaching';
 import CommunityPage from './pages/Community';
@@ -26,6 +27,18 @@ import BadgeCelebration from './components/BadgeCelebration';
 
 const App: React.FC = () => {
     const { loading } = useAuth();
+    const { theme } = useUserStore();
+
+    useEffect(() => {
+        // Aplicar el tema al documento
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+        }
+    }, [theme]);
 
     if (loading) {
         return (
