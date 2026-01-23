@@ -102,7 +102,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         bio: "",
         avatar: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
         level: 1,
-        levelName: "Principiante",
+        levelName: "Pionero",
         xp: 0,
         nextLevelXp: 500
     },

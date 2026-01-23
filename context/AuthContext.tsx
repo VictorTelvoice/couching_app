@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children?: ReactNode }) => {
             bio: "",
             avatar: user.photoURL || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png",
             level: 1,
-            levelName: "Novato",
+            levelName: "Pionero",
             xp: 0,
             nextLevelXp: 500
           },
